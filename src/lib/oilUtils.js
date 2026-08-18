@@ -88,7 +88,7 @@ export function calcTruckPurchaseAmount(purchase, accountCurrency = "usd_divisa"
     if (purchase.price_currency === "usd_blue") return total;
     if (purchase.price_currency === "usd_divisa") {
       if (!purchase.usd_divisa_rate || !purchase.usd_blue_rate) return 0;
-      return total * (purchase.usd_blue_rate / purchase.usd_divisa_rate);
+      return total * (purchase.usd_divisa_rate / purchase.usd_blue_rate);
     }
   } else {
     if (purchase.price_currency === "usd_divisa") return total;
