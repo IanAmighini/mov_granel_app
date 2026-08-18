@@ -88,7 +88,7 @@ export function calcTruckPurchaseAmount(purchase, accountCurrency = "usd_divisa"
     if (purchase.price_currency === "usd_blue") return total;
     if (purchase.price_currency === "usd_divisa") {
       if (!purchase.usd_divisa_rate || !purchase.usd_blue_rate) return 0;
-      return total * (purchase.usd_blue_rate / purchase.usd_divisa_rate);
+      return total * (purchase.usd_divisa_rate / purchase.usd_blue_rate);
     }
   } else {
     if (purchase.price_currency === "usd_divisa") return total;
@@ -111,6 +111,9 @@ export function convertPaymentAmount(amount, currency, usd_divisa_rate, usd_blue
     switch (currency) {
       case "usd_billete":
         return amount;
+      case "usd_divisa":
+        if (!usd_divisa_rate || !usd_blue_rate) return 0;
+        return amount * (usd_divisa_rate / usd_blue_rate);
       case "ars":
         if (!usd_blue_rate) return 0;
         return amount / usd_blue_rate;
@@ -162,10 +165,10 @@ export function convertBetweenCurrencies(amount, fromCurrency, toCurrency, rate)
   if (!rate || !rate.usd_divisa_rate || !rate.usd_blue_rate) return amount;
 
   if (fromCurrency === "usd_billete" && toCurrency === "usd_divisa") {
-    return amount * (rate.usd_divisa_rate / rate.usd_blue_rate);
+    return amount * (rate.usd_blue_rate / rate.usd_divisa_rate);
   }
   if (fromCurrency === "usd_divisa" && toCurrency === "usd_billete") {
-    return amount * (rate.usd_blue_rate / rate.usd_divisa_rate);
+    return amount * (rate.usd_divisa_rate / rate.usd_blue_rate);
   }
   return amount;
 }
