@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { sheetsClient } from "@/api/sheetsClient";
 
 function sortByDateDesc(list) {
@@ -13,43 +13,34 @@ const ENTITY_NAMES = [
   "RefineryMovement",
   "RefineryPayment",
   "PurchaseAgreement",
+  "DirectSale",
+  "Buyer",
+  "BuyerPayment",
 ];
 
+async function fetchOilData() {
+  const result = await sheetsClient.listMultiple(ENTITY_NAMES);
+  return {
+    suppliers: result.Supplier || [],
+    refineries: result.Refinery || [],
+    truckPurchases: sortByDateDesc(result.TruckPurchase || []).slice(0, 500),
+    supplierPayments: sortByDateDesc(result.SupplierPayment || []).slice(0, 500),
+    refineryMovements: sortByDateDesc(result.RefineryMovement || []).slice(0, 500),
+    refineryPayments: sortByDateDesc(result.RefineryPayment || []).slice(0, 500),
+    purchaseAgreements: sortByDateDesc(result.PurchaseAgreement || []).slice(0, 500),
+    directSales: sortByDateDesc(result.DirectSale || []).slice(0, 500),
+    buyers: result.Buyer || [],
+    buyerPayments: sortByDateDesc(result.BuyerPayment || []).slice(0, 500),
+  };
+}
+
 export function useOilData() {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const { data, isLoading, refetch } = useQuery({
+    queryKey: ["oilData"],
+    queryFn: fetchOilData,
+    staleTime: 30000, // 30 segundos: al volver a una pantalla ya vista, no vuelve a pedir todo
+    refetchOnWindowFocus: false,
+  });
 
-  const refetch = useCallback(() => setRefreshKey((k) => k + 1), []);
-
-  useEffect(() => {
-    let cancelled = false;
-    async function fetchAll() {
-      setLoading(true);
-      try {
-        const result = await sheetsClient.listMultiple(ENTITY_NAMES);
-        if (!cancelled) {
-          setData({
-            suppliers: result.Supplier || [],
-            refineries: result.Refinery || [],
-            truckPurchases: sortByDateDesc(result.TruckPurchase || []).slice(0, 500),
-            supplierPayments: sortByDateDesc(result.SupplierPayment || []).slice(0, 500),
-            refineryMovements: sortByDateDesc(result.RefineryMovement || []).slice(0, 500),
-            refineryPayments: sortByDateDesc(result.RefineryPayment || []).slice(0, 500),
-            purchaseAgreements: sortByDateDesc(result.PurchaseAgreement || []).slice(0, 500),
-          });
-        }
-      } catch (err) {
-        console.error("Error fetching data:", err);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    fetchAll();
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshKey]);
-
-  return { data, loading, refetch };
+  return { data, loading: isLoading, refetch };
 }

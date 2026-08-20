@@ -101,6 +101,9 @@ export const sheetsClient = {
     SupplierPayment: makeEntity("SupplierPayment"),
     TruckPurchase: makeEntity("TruckPurchase"),
     User: makeEntity("User"),
+    Buyer: makeEntity("Buyer"),
+    DirectSale: makeEntity("DirectSale"),
+    BuyerPayment: makeEntity("BuyerPayment")
   },
   auth,
   listMultiple,

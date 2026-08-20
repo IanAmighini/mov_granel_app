@@ -26,7 +26,7 @@ export default function PurchaseAgreements() {
 
   if (loading || !data) return <p className="text-slate-500">Cargando...</p>;
 
-  const buyerRefineries = data.refineries.filter((r) => r.pricing_type === "buyer");
+  const buyerRefineries = data.buyers;
 
   const getFields = (type) => {
     const isPurchase = type === "purchase_crude";

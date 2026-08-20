@@ -25,6 +25,10 @@ import SupplierPayments from './pages/SupplierPayments';
 import RefineryMovements from './pages/RefineryMovements';
 import RefineryPayments from './pages/RefineryPayments';
 import PurchaseAgreements from './pages/PurchaseAgreements';
+import DirectSales from './pages/DirectSales';
+import Buyers from './pages/Buyers';
+import BuyerPayments from './pages/BuyerPayments.jsx';
+import BuyerDetail from './pages/BuyerDetail';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth } = useAuth();
@@ -62,6 +66,10 @@ const AuthenticatedApp = () => {
           <Route path="/movimientos-refineria" element={<RefineryMovements />} />
           <Route path="/pagos-refinerias" element={<RefineryPayments />} />
           <Route path="/acuerdos" element={<PurchaseAgreements />} />
+          <Route path="/ventas-directas" element={<DirectSales />} />
+          <Route path="/compradores" element={<Buyers />} />
+          <Route path="/pagos-compradores" element={<BuyerPayments />} />
+          <Route path="/compradores/:id" element={<BuyerDetail />} />
         </Route>
       </Route>
 

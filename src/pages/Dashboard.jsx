@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
-import { Users, Factory, Warehouse, ArrowRight } from "lucide-react";
+import { Users, Factory, Warehouse, ArrowRight, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import StatCard from "@/components/StatCard";
 import PageHeader from "@/components/PageHeader";
@@ -10,6 +11,7 @@ import {
   calcSupplierBalance,
   calcRefineryBalance,
   calcRefineryStock,
+  calcBuyerBalance,
   calcTruckPurchaseUsdDivisa,
   calcNetTons,
   getLatestRateForSupplier,
@@ -62,6 +64,23 @@ export default function Dashboard() {
     totalStock += calcRefineryStock(movements).total.stock;
   });
 
+  const buyers = data.buyers || [];
+  const buyerStats = buyers.map((b) => {
+    const bMovements = refineryMovements.filter(
+      (m) => m.destination === b.id && m.movement_type === "refined_out" && !m.is_initial_balance
+    );
+    const bDirectSales = (data.directSales || []).filter((s) => s.buyer_id === b.id);
+    const bTruckPurchases = truckPurchases.filter((p) => p.buyer_id === b.id);
+    const bPayments = (data.buyerPayments || []).filter((p) => p.buyer_id === b.id);
+    const { balance, totalDeliveredTons } = calcBuyerBalance(
+      b,
+      { movements: bMovements, directSales: bDirectSales, truckPurchases: bTruckPurchases, payments: bPayments },
+      data.purchaseAgreements
+    );
+    return { ...b, balance, totalDeliveredTons };
+  });
+  const totalBuyerBalance = buyerStats.reduce((sum, b) => sum + b.balance, 0);
+
   const suppliersWeOwe = suppliers
     .map((s) => {
       const purchases = truckPurchases.filter((p) => p.supplier_id === s.id);
@@ -83,7 +102,7 @@ export default function Dashboard() {
     <div>
       <PageHeader title="Dashboard" description="Resumen general de operaciones" />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           label="Saldo Total a Proveedores"
           value={formatUsd(totalSupplierBalanceDivisa)}
@@ -97,6 +116,13 @@ export default function Dashboard() {
           sublabel="Neto en USD Divisa"
           icon={Factory}
           tone={totalRefineryBalance > 0 ? "red" : "green"}
+        />
+        <StatCard
+          label="Saldo de Compradores"
+          value={formatUsd(totalBuyerBalance)}
+          sublabel="Nos deben, neto en USD Divisa"
+          icon={Building2}
+          tone={totalBuyerBalance > 0 ? "green" : "red"}
         />
         <StatCard
           label="Stock Total en Refinerías"
@@ -186,7 +212,7 @@ export default function Dashboard() {
                   return (
                     <TableRow key={a.id}>
                       <TableCell className="font-medium">
-                        {getAgreementPartyName(a, suppliers, refineries)}
+                        {getAgreementPartyName(a, suppliers, data.buyers)}
                       </TableCell>
                       <TableCell>
                         <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
@@ -258,7 +284,42 @@ export default function Dashboard() {
           </div>
         )}
       </div>
-
+            <div className="mb-8">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold text-slate-900">Saldo por Comprador</h2>
+          <Link to="/compradores">
+            <Button variant="ghost" size="sm">
+              Ver todos <ArrowRight className="w-4 h-4 ml-1" />
+            </Button>
+          </Link>
+        </div>
+        {buyerStats.length === 0 ? (
+          <p className="text-slate-400 text-center py-6">Sin compradores cargados</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {buyerStats.map((b) => (
+              <Card key={b.id} className="p-4">
+                <p className="font-semibold text-slate-900 mb-3">{b.name}</p>
+                <div className="flex items-center justify-between text-sm mb-1">
+                  <span className="text-slate-500">Total Entregado</span>
+                  <span className="font-medium">{formatTons(b.totalDeliveredTons)}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-slate-500">Saldo</span>
+                  <span
+                    className={`font-semibold ${
+                      b.balance > 0.01 ? "text-emerald-600" : b.balance < -0.01 ? "text-rose-600" : "text-slate-400"
+                    }`}
+                  >
+                    {formatUsd(b.balance)}
+                  </span>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+      
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-semibold text-slate-900">Compras Recientes</h2>

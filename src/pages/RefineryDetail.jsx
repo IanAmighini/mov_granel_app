@@ -10,7 +10,6 @@ import {
   calcRefineryBalance,
   calcRefineryStock,
   convertToUsdDivisa,
-  calcRefinedSaleUsdDivisa,
   findMatchingAgreement,
   incrementAgreement,
   decrementAgreement,
@@ -41,8 +40,7 @@ export default function RefineryDetail() {
   const payments = data.refineryPayments.filter((p) => p.refinery_id === id);
   const purchases = data.truckPurchases.filter((p) => p.refinery_id === id);
   const stock = calcRefineryStock(movements);
-  const isBuyer = refinery.pricing_type === "buyer";
-  const { totalCharges, totalPayments, balance } = calcRefineryBalance(refinery, movements, payments, purchases, data.refineryMovements, data.purchaseAgreements);
+  const { totalCharges, totalPayments, balance } = calcRefineryBalance(refinery, movements, payments, purchases);
 
   const transactions = [
     ...movements.map((m) => {
@@ -59,18 +57,11 @@ export default function RefineryDetail() {
           debit = (m.gross_tons || m.tons || 0) * (refinery.processing_cost_per_ton || 0);
         } else if (refinery.pricing_type === "egress_per_ton" && m.movement_type === "refined_out") {
           debit = (m.tons || 0) * (refinery.processing_cost_per_ton || 0);
-        } else if (refinery.pricing_type === "buyer" && m.movement_type === "crude_in") {
-          const purchase = data.truckPurchases.find((p) => p.id === m.truck_purchase_id);
-          debit = (m.tons || 0) * (purchase?.sale_price_per_ton || 0);
         }
 
-        const moveLabel = isBuyer && m.movement_type === "crude_in"
-          ? "Venta"
-          : m.movement_type === "crude_in"
-            ? "Ingreso"
-            : "Egreso";
-        const destRefinery = data.refineries.find((r) => r.id === m.destination);
-        const destSuffix = m.destination ? ` → ${destRefinery?.name || m.destination}` : "";
+        const moveLabel = m.movement_type === "crude_in" ? "Ingreso" : "Egreso";
+        const destBuyer = data.buyers?.find((b) => b.id === m.destination);
+        const destSuffix = m.destination ? ` → ${destBuyer?.name || m.destination}` : "";
         description = `${moveLabel} — ${oilTypeLabels[m.oil_type]} — ${formatTons(m.tons)}${destSuffix}`;
       }
 
@@ -84,23 +75,6 @@ export default function RefineryDetail() {
         type: "movement",
       };
     }),
-    ...(isBuyer
-      ? data.refineryMovements
-          .filter((m) => m.movement_type === "refined_out" && !m.is_initial_balance && m.destination === id && m.refinery_id !== id)
-          .map((m) => {
-            const sourceRefinery = data.refineries.find((r) => r.id === m.refinery_id);
-            const debit = calcRefinedSaleUsdDivisa(m, data.purchaseAgreements);
-            return {
-              ...m,
-              id: m.id,
-              date: m.date,
-              description: `Venta Refinado — ${oilTypeLabels[m.oil_type]} — ${formatTons(m.tons)} (desde ${sourceRefinery?.name || "—"})`,
-              debit,
-              credit: 0,
-              type: "movement",
-            };
-          })
-      : []),
     ...payments.map((p) => {
       if (p.is_initial_balance) {
         return {
@@ -147,10 +121,10 @@ export default function RefineryDetail() {
     { name: "tons", label: "Toneladas", type: "number", required: true, placeholder: "Ej: 28,10" },
     {
       name: "destination",
-      label: "Destino (Cliente)",
+      label: "Destino (Comprador)",
       type: "select",
-      options: data.refineries.filter((r) => r.pricing_type === "buyer" && r.id !== id).map((r) => ({ value: r.id, label: r.name })),
-      hint: "Cliente comprador. Solo para egresos.",
+      options: (data.buyers || []).map((b) => ({ value: b.id, label: b.name })),
+      hint: "Comprador. Solo para egresos.",
     },
     {
       name: "sale_price_per_ton",
@@ -304,8 +278,6 @@ export default function RefineryDetail() {
     refetch();
   };
 
-  const debitLabel = isBuyer ? "Ventas (Debe)" : "Procesos (Debe)";
-
   return (
     <div>
       <Link to="/refinerias" className="inline-flex items-center text-sm text-slate-500 hover:text-slate-900 mb-4">
@@ -366,7 +338,7 @@ export default function RefineryDetail() {
           <h2 className="text-sm font-semibold text-slate-700 mb-3">Cuenta Corriente</h2>
           <div className="grid grid-cols-3 gap-3">
             <Card className="p-4">
-              <p className="text-xs text-slate-500">{debitLabel}</p>
+              <p className="text-xs text-slate-500">Procesos (Debe)</p>
               <p className="text-lg font-bold text-slate-900 mt-1">{formatUsd(totalCharges)}</p>
             </Card>
             <Card className="p-4">
@@ -377,9 +349,7 @@ export default function RefineryDetail() {
               <p className="text-xs text-slate-500">Saldo</p>
               <p
                 className={`text-lg font-bold mt-1 ${
-                  isBuyer
-                    ? balance > 0.01 ? "text-emerald-600" : balance < -0.01 ? "text-rose-600" : "text-slate-400"
-                    : balance > 0.01 ? "text-rose-600" : balance < -0.01 ? "text-emerald-600" : "text-slate-400"
+                  balance > 0.01 ? "text-rose-600" : balance < -0.01 ? "text-emerald-600" : "text-slate-400"
                 }`}
               >
                 {formatUsd(balance)}

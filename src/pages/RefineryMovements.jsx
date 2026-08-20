@@ -25,9 +25,6 @@ export default function RefineryMovements() {
 
   if (loading || !data) return <p className="text-slate-500">Cargando...</p>;
 
-  const buyerRefineries = data.refineries.filter((r) => r.pricing_type === "buyer");
-  const sourceRefineries = data.refineries.filter((r) => r.pricing_type !== "buyer");
-
   const fields = [
     { name: "date", label: "Fecha", type: "date", required: true, defaultValue: todayStr() },
     {
@@ -35,7 +32,7 @@ export default function RefineryMovements() {
       label: "Refinería de Origen",
       type: "select",
       required: true,
-      options: sourceRefineries.map((r) => ({ value: r.id, label: r.name })),
+      options: data.refineries.map((r) => ({ value: r.id, label: r.name })),
     },
     {
       name: "oil_type",
@@ -51,11 +48,11 @@ export default function RefineryMovements() {
     { name: "tons", label: "Toneladas", type: "number", required: true, placeholder: "Ej: 28,10" },
     {
       name: "destination",
-      label: "Destino (Cliente)",
+      label: "Destino (Comprador)",
       type: "select",
       required: true,
-      options: buyerRefineries.map((r) => ({ value: r.id, label: r.name })),
-      hint: "Cliente comprador. Para MRT (consumo propio) no genera deuda si no hay acuerdo de venta.",
+      options: data.buyers.map((b) => ({ value: b.id, label: b.name })),
+      hint: "Comprador. Para MRT (consumo propio) no genera deuda si no hay acuerdo de venta.",
     },
     {
       name: "sale_price_per_ton",
@@ -77,6 +74,7 @@ export default function RefineryMovements() {
       hint: "ARS por 1 USD blue. Necesario si el precio del acuerdo está en USD Blue.",
       placeholder: "Ej: 1200",
     },
+    { name: "ticket_number", label: "N° de Remito/Ticket" },
     { name: "notes", label: "Notas", type: "textarea" },
   ];
 
@@ -144,7 +142,7 @@ export default function RefineryMovements() {
     <div>
       <PageHeader
         title="Egresos de Refinería"
-        description="Retiro de aceite refinado. Descuenta stock de la refinería e imputa en la cuenta del cliente."
+        description="Retiro de aceite refinado. Descuenta stock de la refinería e imputa en la cuenta del comprador."
         action={
           <Button onClick={handleCreate}>
             <Plus className="w-4 h-4 mr-2" /> Nuevo Egreso
@@ -160,6 +158,7 @@ export default function RefineryMovements() {
               <TableHead>Refinería</TableHead>
               <TableHead>Aceite</TableHead>
               <TableHead className="text-right">Toneladas</TableHead>
+              <TableHead>Ticket</TableHead>
               <TableHead>Destino</TableHead>
               <TableHead className="w-20"></TableHead>
             </TableRow>
@@ -167,15 +166,14 @@ export default function RefineryMovements() {
           <TableBody>
             {egressMovements.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-slate-400 py-8">
+                <TableCell colSpan={7} className="text-center text-slate-400 py-8">
                   No hay egresos registrados
                 </TableCell>
               </TableRow>
             ) : (
               egressMovements.map((m) => {
                 const refinery = data.refineries.find((r) => r.id === m.refinery_id);
-                const destRefinery = data.refineries.find((r) => r.id === m.destination);
-                const destName = destRefinery?.name || m.destination || "—";
+                const buyer = data.buyers.find((b) => b.id === m.destination);
                 return (
                   <TableRow key={m.id}>
                     <TableCell className="text-slate-500">{formatDate(m.date)}</TableCell>
@@ -190,13 +188,14 @@ export default function RefineryMovements() {
                       </span>
                     </TableCell>
                     <TableCell className="text-right font-medium">{formatTons(m.tons)}</TableCell>
+                    <TableCell className="text-slate-500">{m.ticket_number || "—"}</TableCell>
                     <TableCell className="text-slate-600">
-                      {destRefinery ? (
-                        <Link to={`/refinerias/${m.destination}`} className="hover:text-emerald-600">
-                          {destName}
+                      {buyer ? (
+                        <Link to={`/compradores/${m.destination}`} className="hover:text-emerald-600">
+                          {buyer.name}
                         </Link>
                       ) : (
-                        destName
+                        m.destination || "—"
                       )}
                     </TableCell>
                     <TableCell>

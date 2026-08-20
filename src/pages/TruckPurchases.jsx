@@ -83,18 +83,25 @@ export default function TruckPurchases() {
       placeholder: "Ej: 1200",
     },
     {
-      name: "sale_price_per_ton",
-      label: "Precio de Venta por Tonelada (USD Divisa)",
-      type: "number",
-      hint: "Solo para refinerías compradoras (Oligra - Proveedores).",
-      placeholder: "Ej: 990",
-    },
-    {
       name: "refinery_id",
       label: "Refinería de Destino",
       type: "select",
-      required: true,
       options: data.refineries.map((r) => ({ value: r.id, label: r.name })),
+      hint: "Dejar vacío si esta compra se vende DIRECTO a un Comprador (completar el campo de abajo en ese caso).",
+    },
+    {
+      name: "buyer_id",
+      label: "Comprador (venta directa)",
+      type: "select",
+      options: data.buyers.map((b) => ({ value: b.id, label: b.name })),
+      hint: "Completar SOLO si el camión se vende directo, sin pasar por una refinería. No completar junto con Refinería.",
+    },
+    {
+      name: "sale_price_per_ton",
+      label: "Precio de Venta por Tonelada (USD Divisa)",
+      type: "number",
+      hint: "Solo si se completó Comprador (venta directa).",
+      placeholder: "Ej: 990",
     },
     { name: "ticket_number", label: "N° de Remito/Ticket" },
     { name: "notes", label: "Notas", type: "textarea" },
@@ -111,13 +118,20 @@ export default function TruckPurchases() {
   };
 
   const handleSubmit = async (values) => {
-    const refinery = data.refineries.find((r) => r.id === values.refinery_id);
-    const isDirectSale = refinery?.pricing_type === "buyer";
+    if (!values.refinery_id && !values.buyer_id) {
+      alert("Completá Refinería de Destino o Comprador (venta directa).");
+      return;
+    }
+    if (values.refinery_id && values.buyer_id) {
+      alert("Completá SOLO uno: Refinería de Destino o Comprador, no ambos.");
+      return;
+    }
+    const isDirectSale = !!values.buyer_id;
 
     if (editingItem) {
       await sheetsClient.entities.TruckPurchase.update(editingItem.id, values);
       const linkedMovement = data.refineryMovements.find((m) => m.truck_purchase_id === editingItem.id);
-      if (linkedMovement) {
+      if (linkedMovement && values.refinery_id) {
         const netTons = (values.tons || 0) * (1 - (values.discount_percent || 0) / 100);
         await sheetsClient.entities.RefineryMovement.update(linkedMovement.id, {
           date: values.date,
@@ -126,13 +140,29 @@ export default function TruckPurchases() {
           tons: parseFloat(netTons.toFixed(3)),
           gross_tons: values.tons,
         });
+      } else if (linkedMovement && isDirectSale) {
+        // Se cambió de refinería a venta directa: ya no corresponde el movimiento de stock
+        await sheetsClient.entities.RefineryMovement.delete(linkedMovement.id);
+      } else if (!linkedMovement && values.refinery_id) {
+        // Se cambió de venta directa a refinería: crear el movimiento
+        const netTons = (values.tons || 0) * (1 - (values.discount_percent || 0) / 100);
+        await sheetsClient.entities.RefineryMovement.create({
+          date: values.date,
+          refinery_id: values.refinery_id,
+          movement_type: "crude_in",
+          oil_type: values.oil_type,
+          tons: parseFloat(netTons.toFixed(3)),
+          gross_tons: values.tons,
+          truck_purchase_id: editingItem.id,
+          notes: "Auto-generado desde compra",
+        });
       }
     } else {
       const purchaseAgreement = findMatchingAgreement(
         data.purchaseAgreements, values.supplier_id, values.oil_type, "purchase_crude"
       );
       const saleAgreement = isDirectSale
-        ? findMatchingAgreement(data.purchaseAgreements, values.refinery_id, values.oil_type, "sale_crude")
+        ? findMatchingAgreement(data.purchaseAgreements, values.buyer_id, values.oil_type, "sale_crude")
         : null;
 
       const purchaseData = { ...values };
@@ -140,17 +170,20 @@ export default function TruckPurchases() {
       if (saleAgreement) purchaseData.sale_agreement_id = saleAgreement.id;
 
       const purchase = await sheetsClient.entities.TruckPurchase.create(purchaseData);
-      const netTons = (values.tons || 0) * (1 - (values.discount_percent || 0) / 100);
-      await sheetsClient.entities.RefineryMovement.create({
-        date: values.date,
-        refinery_id: values.refinery_id,
-        movement_type: "crude_in",
-        oil_type: values.oil_type,
-        tons: parseFloat(netTons.toFixed(3)),
-        gross_tons: values.tons,
-        truck_purchase_id: purchase.id,
-        notes: "Auto-generado desde compra",
-      });
+
+      if (!isDirectSale) {
+        const netTons = (values.tons || 0) * (1 - (values.discount_percent || 0) / 100);
+        await sheetsClient.entities.RefineryMovement.create({
+          date: values.date,
+          refinery_id: values.refinery_id,
+          movement_type: "crude_in",
+          oil_type: values.oil_type,
+          tons: parseFloat(netTons.toFixed(3)),
+          gross_tons: values.tons,
+          truck_purchase_id: purchase.id,
+          notes: "Auto-generado desde compra",
+        });
+      }
 
       await incrementAgreement(purchaseAgreement);
       await incrementAgreement(saleAgreement);
@@ -180,7 +213,7 @@ export default function TruckPurchases() {
     <div>
       <PageHeader
         title="Compras de Camiones"
-        description="Registro de compras de aceite crudo a granel. El ingreso a refinería es automático."
+        description="Registro de compras de aceite crudo a granel. El ingreso a refinería es automático, salvo venta directa a un Comprador."
         action={
           <Button onClick={handleCreate}>
             <Plus className="w-4 h-4 mr-2" /> Nueva Compra
@@ -200,7 +233,7 @@ export default function TruckPurchases() {
               <TableHead className="text-right">Neto</TableHead>
               <TableHead className="text-right">Precio/Tn</TableHead>
               <TableHead>Moneda</TableHead>
-              <TableHead>Refinería</TableHead>
+              <TableHead>Destino</TableHead>
               <TableHead className="text-right">Total USD Divisa</TableHead>
               <TableHead className="w-20"></TableHead>
             </TableRow>
@@ -216,6 +249,7 @@ export default function TruckPurchases() {
               data.truckPurchases.map((p) => {
                 const supplier = data.suppliers.find((s) => s.id === p.supplier_id);
                 const refinery = data.refineries.find((r) => r.id === p.refinery_id);
+                const buyer = data.buyers.find((b) => b.id === p.buyer_id);
                 const agreement = data.purchaseAgreements?.find((a) => a.id === p.purchase_agreement_id);
                 return (
                   <TableRow key={p.id}>
@@ -241,9 +275,17 @@ export default function TruckPurchases() {
                     <TableCell className="text-right">{p.price_per_ton}</TableCell>
                     <TableCell className="text-slate-500">{currencyLabels[p.price_currency]}</TableCell>
                     <TableCell className="text-slate-500">
-                      <Link to={`/refinerias/${p.refinery_id}`} className="hover:text-emerald-600">
-                        {refinery?.name || "—"}
-                      </Link>
+                      {refinery ? (
+                        <Link to={`/refinerias/${p.refinery_id}`} className="hover:text-emerald-600">
+                          {refinery.name}
+                        </Link>
+                      ) : buyer ? (
+                        <Link to={`/compradores/${p.buyer_id}`} className="hover:text-emerald-600">
+                          {buyer.name} <span className="text-xs text-amber-600">(directo)</span>
+                        </Link>
+                      ) : (
+                        "—"
+                      )}
                     </TableCell>
                     <TableCell className="text-right font-semibold">
                       {formatUsd(calcTruckPurchaseUsdDivisa(p))}

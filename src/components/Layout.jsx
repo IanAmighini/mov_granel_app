@@ -12,17 +12,23 @@ import {
   X,
   Droplet,
   FileText,
+  ShoppingCart,
+  Building2,
+  Wallet,
 } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/proveedores", label: "Proveedores", icon: Users },
   { to: "/refinerias", label: "Refinerías", icon: Factory },
+  { to: "/compradores", label: "Compradores", icon: Building2 },
   { to: "/compras", label: "Compras", icon: Truck },
   { to: "/acuerdos", label: "Acuerdos", icon: FileText },
+  { to: "/ventas-directas", label: "Ventas Directas", icon: ShoppingCart },
   { to: "/pagos-proveedores", label: "Pagos a Proveedores", icon: Banknote },
   { to: "/movimientos-refineria", label: "Egresos de Refinería", icon: ArrowRightLeft },
   { to: "/pagos-refinerias", label: "Pagos a Refinerías", icon: CreditCard },
+  { to: "/pagos-compradores", label: "Pagos de Compradores", icon: Wallet },
 ];
 
 export default function Layout() {

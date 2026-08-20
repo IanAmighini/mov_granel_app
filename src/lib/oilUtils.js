@@ -225,11 +225,11 @@ export function calcRefinedSaleUsdDivisa(movement, allAgreements = []) {
   return total;
 }
 
-export function getAgreementPartyName(agreement, suppliers, refineries) {
+export function getAgreementPartyName(agreement, suppliers, buyers) {
   if (!agreement) return "—";
   const isSale = agreement.agreement_type === "sale_crude" || agreement.agreement_type === "sale_refined" || agreement.party_type === "buyer";
   if (isSale) {
-    const buyer = refineries.find((r) => r.id === (agreement.party_id || agreement.supplier_id));
+    const buyer = (buyers || []).find((b) => b.id === (agreement.party_id || agreement.supplier_id));
     return buyer?.name || "—";
   }
   const supplier = suppliers.find((s) => s.id === (agreement.party_id || agreement.supplier_id));
@@ -288,4 +288,48 @@ export async function decrementAgreement(agreement) {
     delivered_count: newCount,
     status: "open",
   });
+}
+
+export function calcDirectSaleUsdDivisa(sale) {
+  const tons = sale.tons || 0;
+  const total = tons * (sale.price_per_ton || 0);
+  if (sale.price_currency === "usd_divisa") return total;
+  if (sale.price_currency === "usd_blue") {
+    if (!sale.usd_divisa_rate || !sale.usd_blue_rate) return total;
+    return total * (sale.usd_divisa_rate / sale.usd_blue_rate);
+  }
+  return total;
+}
+
+export function calcBuyerBalance(buyer, { movements = [], directSales = [], truckPurchases = [], payments = [] }, allAgreements = []) {
+  let totalCharges = 0;
+  let totalDeliveredTons = 0;
+
+  for (const m of movements) {
+    totalCharges += calcRefinedSaleUsdDivisa(m, allAgreements);
+    totalDeliveredTons += m.tons || 0;
+  }
+
+  for (const p of truckPurchases) {
+    const netTons = calcNetTons(p);
+    totalCharges += netTons * (p.sale_price_per_ton || 0);
+    totalDeliveredTons += netTons;
+  }
+
+  for (const s of directSales) {
+    totalCharges += calcDirectSaleUsdDivisa(s);
+    totalDeliveredTons += s.tons || 0;
+  }
+
+  let totalPayments = 0;
+  for (const p of payments) {
+    if (p.is_initial_balance) {
+      if ((p.amount || 0) > 0) totalCharges += p.amount;
+      else totalPayments += Math.abs(p.amount || 0);
+    } else {
+      totalPayments += convertToUsdDivisa(p.amount, p.currency, p.usd_divisa_rate, p.usd_blue_rate);
+    }
+  }
+
+  return { totalCharges, totalPayments, balance: totalCharges - totalPayments, totalDeliveredTons };
 }

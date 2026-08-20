@@ -29,14 +29,13 @@ const fields = [
       { value: "none", label: "Sin Costo" },
       { value: "ingress_per_ton", label: "Costo por Tn Ingresada" },
       { value: "egress_per_ton", label: "Costo por Tn Egresada" },
-      { value: "buyer", label: "Comprador (nos compra)" },
     ],
   },
   {
     name: "processing_cost_per_ton",
     label: "Costo por Tonelada (USD Divisa)",
     type: "number",
-    hint: "No aplica para 'Sin Costo' o 'Comprador'.",
+    hint: "No aplica para 'Sin Costo'.",
   },
   { name: "notes", label: "Notas", type: "textarea" },
 ];
@@ -110,7 +109,6 @@ export default function Refineries() {
                   const purchases = data.truckPurchases.filter((p) => p.refinery_id === r.id);
                   const stock = calcRefineryStock(movements);
                   const { balance } = calcRefineryBalance(r, movements, payments, purchases);
-                  const isBuyer = r.pricing_type === "buyer";
                   return (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">{r.name}</TableCell>
@@ -122,9 +120,7 @@ export default function Refineries() {
                       <TableCell className="text-right font-semibold">{formatTons(stock.total.stock)}</TableCell>
                       <TableCell
                         className={`text-right font-semibold ${
-                          isBuyer
-                            ? balance > 0.01 ? "text-emerald-600" : balance < -0.01 ? "text-rose-600" : "text-slate-400"
-                            : balance > 0.01 ? "text-rose-600" : balance < -0.01 ? "text-emerald-600" : "text-slate-400"
+                          balance > 0.01 ? "text-rose-600" : balance < -0.01 ? "text-emerald-600" : "text-slate-400"
                         }`}
                       >
                         {formatUsd(balance)}
