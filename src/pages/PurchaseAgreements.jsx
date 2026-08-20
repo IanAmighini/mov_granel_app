@@ -54,7 +54,7 @@ export default function PurchaseAgreements() {
           { value: "girasol_ao", label: "Girasol AO" },
         ],
       },
-      { name: "price_per_ton", label: "Precio por Tonelada", type: "number", required: true },
+      { name: "price_per_ton", label: "Precio por Tonelada", type: "currency", required: true },
       {
         name: "price_currency",
         label: "Moneda del Precio",

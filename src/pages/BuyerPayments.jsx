@@ -7,7 +7,7 @@ import ResourceFormDialog from "@/components/ResourceFormDialog";
 import DeleteButton from "@/components/DeleteButton";
 import PageHeader from "@/components/PageHeader";
 import { useOilData } from "@/hooks/useOilData";
-import { formatDate, formatUsd, currencyLabels, todayStr } from "@/lib/oilUtils";
+import { formatDate, formatUsd, formatArs, currencyLabels, todayStr } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
 
 export default function BuyerPayments() {
@@ -28,7 +28,7 @@ export default function BuyerPayments() {
       required: true,
       options: data.buyers.map((b) => ({ value: b.id, label: b.name })),
     },
-    { name: "amount", label: "Monto", type: "number", required: true },
+    { name: "amount", label: "Monto", type: "currency", required: true },
     {
       name: "currency",
       label: "Moneda",
@@ -42,14 +42,14 @@ export default function BuyerPayments() {
     {
       name: "usd_divisa_rate",
       label: "Cotización USD Divisa",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD divisa. Necesario para conversión.",
       placeholder: "Ej: 1050",
     },
     {
       name: "usd_blue_rate",
       label: "Cotización USD Blue",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD blue. Necesario si el pago es en USD Billete.",
       placeholder: "Ej: 1200",
     },
@@ -130,7 +130,11 @@ export default function BuyerPayments() {
                     </Link>
                   </TableCell>
                   <TableCell className="text-right">
-                    {p.is_initial_balance ? formatUsd(p.amount) : p.amount}
+                    {p.is_initial_balance
+                      ? formatUsd(p.amount)
+                      : p.currency === "ars"
+                        ? formatArs(p.amount)
+                        : formatUsd(p.amount)}
                   </TableCell>
                   <TableCell className="text-slate-500">
                     {p.is_initial_balance ? "USD Divisa" : currencyLabels[p.currency]}

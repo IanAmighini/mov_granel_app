@@ -26,7 +26,7 @@ const fields = [
   {
     name: "default_price_per_ton",
     label: "Precio Habitual por Tonelada",
-    type: "number",
+    type: "currency",
     hint: "Solo informativo, para referencia rápida.",
   },
   { name: "notes", label: "Notas", type: "textarea" },

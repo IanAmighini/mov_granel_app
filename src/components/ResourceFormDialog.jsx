@@ -19,6 +19,40 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 
+function formatCurrencyDisplay(value) {
+  if (value === "" || value === undefined || value === null) return "";
+  const num = typeof value === "number" ? value : parseFloat(value);
+  if (isNaN(num)) return "";
+  return new Intl.NumberFormat("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num);
+}
+
+function parseCurrencyInput(text) {
+  if (!text) return "";
+  const cleaned = text.replace(/\./g, "").replace(",", ".").replace(/[^0-9.-]/g, "");
+  const num = parseFloat(cleaned);
+  return isNaN(num) ? "" : num;
+}
+
+function CurrencyInput({ value, onChange, placeholder }) {
+  const [text, setText] = useState(() => formatCurrencyDisplay(value));
+
+  useEffect(() => {
+    setText(formatCurrencyDisplay(value));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+
+  return (
+    <Input
+      type="text"
+      inputMode="decimal"
+      value={text}
+      onChange={(e) => setText(e.target.value)}
+      onBlur={() => onChange(parseCurrencyInput(text))}
+      placeholder={placeholder}
+    />
+  );
+}
+
 export default function ResourceFormDialog({
   open,
   onOpenChange,
@@ -44,6 +78,8 @@ export default function ResourceFormDialog({
 
   const setField = (name, value) => setValues((prev) => ({ ...prev, [name]: value }));
 
+  const isNumericType = (type) => type === "number" || type === "currency";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -55,10 +91,10 @@ export default function ResourceFormDialog({
           payload[f.name] = !!v;
         } else if (v === "" || v === undefined || v === null) {
           if (f.required) {
-            payload[f.name] = f.type === "number" ? 0 : "";
+            payload[f.name] = isNumericType(f.type) ? 0 : "";
           }
         } else {
-          payload[f.name] = f.type === "number" ? parseFloat(v) : v;
+          payload[f.name] = isNumericType(f.type) ? parseFloat(v) : v;
         }
       });
       await onSubmit(payload);
@@ -125,6 +161,12 @@ export default function ResourceFormDialog({
                   <Textarea
                     value={values[f.name] || ""}
                     onChange={(e) => setField(f.name, e.target.value)}
+                    placeholder={f.placeholder}
+                  />
+                ) : f.type === "currency" ? (
+                  <CurrencyInput
+                    value={values[f.name]}
+                    onChange={(v) => setField(f.name, v)}
                     placeholder={f.placeholder}
                   />
                 ) : (

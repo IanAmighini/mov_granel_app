@@ -57,20 +57,20 @@ export default function RefineryMovements() {
     {
       name: "sale_price_per_ton",
       label: "Precio de Venta/Tn",
-      type: "number",
+      type: "currency",
       hint: "Se autocompleta desde el acuerdo de venta si se deja vacío.",
     },
     {
       name: "usd_divisa_rate",
       label: "Cotización USD Divisa",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD divisa. Necesario si el precio del acuerdo está en USD Blue.",
       placeholder: "Ej: 1050",
     },
     {
       name: "usd_blue_rate",
       label: "Cotización USD Blue",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD blue. Necesario si el precio del acuerdo está en USD Blue.",
       placeholder: "Ej: 1200",
     },

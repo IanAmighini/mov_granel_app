@@ -10,6 +10,7 @@ import { useOilData } from "@/hooks/useOilData";
 import {
   convertToUsdDivisa,
   formatUsd,
+  formatArs,
   formatDate,
   currencyLabels,
   todayStr,
@@ -32,7 +33,7 @@ export default function RefineryPayments() {
       required: true,
       options: data.refineries.map((r) => ({ value: r.id, label: r.name })),
     },
-    { name: "amount", label: "Monto", type: "number", required: true },
+    { name: "amount", label: "Monto", type: "currency", required: true },
     {
       name: "currency",
       label: "Moneda",
@@ -46,14 +47,14 @@ export default function RefineryPayments() {
     {
       name: "usd_divisa_rate",
       label: "Cotización USD Divisa",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD divisa. Necesario para conversión.",
       placeholder: "Ej: 1050",
     },
     {
       name: "usd_blue_rate",
       label: "Cotización USD Blue",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD blue. Necesario si el pago es en USD Billete.",
       placeholder: "Ej: 1200",
     },
@@ -138,7 +139,9 @@ export default function RefineryPayments() {
                         {refinery?.name || "—"}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-right">{p.amount}</TableCell>
+                    <TableCell className="text-right">
+                      {p.currency === "ars" ? formatArs(p.amount) : formatUsd(p.amount)}
+                    </TableCell>
                     <TableCell className="text-slate-500">
                       {p.is_initial_balance ? "USD Divisa" : currencyLabels[p.currency]}
                     </TableCell>

@@ -105,7 +105,7 @@ export default function BuyerDetail() {
 
   const paymentFields = [
     { name: "date", label: "Fecha", type: "date", required: true, defaultValue: todayStr() },
-    { name: "amount", label: "Monto", type: "number", required: true },
+    { name: "amount", label: "Monto", type: "currency", required: true },
     {
       name: "currency",
       label: "Moneda",
@@ -116,8 +116,8 @@ export default function BuyerDetail() {
         { value: "ars", label: "ARS" },
       ],
     },
-    { name: "usd_divisa_rate", label: "Cotización USD Divisa", type: "number", hint: "ARS por 1 USD divisa.", placeholder: "Ej: 1050" },
-    { name: "usd_blue_rate", label: "Cotización USD Blue", type: "number", hint: "ARS por 1 USD blue.", placeholder: "Ej: 1200" },
+    { name: "usd_divisa_rate", label: "Cotización USD Divisa", type: "currency", hint: "ARS por 1 USD divisa.", placeholder: "Ej: 1050" },
+    { name: "usd_blue_rate", label: "Cotización USD Blue", type: "currency", hint: "ARS por 1 USD blue.", placeholder: "Ej: 1200" },
     {
       name: "is_initial_balance",
       label: "Es saldo inicial",

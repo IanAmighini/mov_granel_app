@@ -47,7 +47,7 @@ export default function DirectSales() {
       ],
     },
     { name: "tons", label: "Toneladas", type: "number", required: true, placeholder: "Ej: 7" },
-    { name: "price_per_ton", label: "Precio por Tonelada", type: "number", required: true },
+    { name: "price_per_ton", label: "Precio por Tonelada", type: "currency", required: true },
     {
       name: "price_currency",
       label: "Moneda del Precio",
@@ -61,14 +61,14 @@ export default function DirectSales() {
     {
       name: "usd_divisa_rate",
       label: "Cotización USD Divisa",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD divisa.",
       placeholder: "Ej: 1050",
     },
     {
       name: "usd_blue_rate",
       label: "Cotización USD Blue",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD blue.",
       placeholder: "Ej: 1200",
     },

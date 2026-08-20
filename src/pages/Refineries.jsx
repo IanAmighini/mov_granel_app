@@ -34,7 +34,7 @@ const fields = [
   {
     name: "processing_cost_per_ton",
     label: "Costo por Tonelada (USD Divisa)",
-    type: "number",
+    type: "currency",
     hint: "No aplica para 'Sin Costo'.",
   },
   { name: "notes", label: "Notas", type: "textarea" },

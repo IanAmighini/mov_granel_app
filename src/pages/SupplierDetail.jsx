@@ -99,7 +99,7 @@ export default function SupplierDetail() {
       hint: "Porcentaje de descuento sobre el peso bruto. Ej: 1.5",
       placeholder: "Ej: 1.5",
     },
-    { name: "price_per_ton", label: "Precio por Tonelada", type: "number", required: true },
+    { name: "price_per_ton", label: "Precio por Tonelada", type: "currency", required: true },
     {
       name: "price_currency",
       label: "Moneda del Precio",
@@ -113,21 +113,21 @@ export default function SupplierDetail() {
     {
       name: "usd_divisa_rate",
       label: "Cotización USD Divisa",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD divisa. Necesario para conversión.",
       placeholder: "Ej: 1050",
     },
     {
       name: "usd_blue_rate",
       label: "Cotización USD Blue",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD blue. Necesario para conversión.",
       placeholder: "Ej: 1200",
     },
     {
       name: "sale_price_per_ton",
       label: "Precio de Venta por Tonelada (USD Divisa)",
-      type: "number",
+      type: "currency",
       hint: "Solo para refinerías compradoras (Oligra - Proveedores).",
       placeholder: "Ej: 990",
     },
@@ -144,7 +144,7 @@ export default function SupplierDetail() {
 
   const paymentFields = [
     { name: "date", label: "Fecha", type: "date", required: true, defaultValue: todayStr() },
-    { name: "amount", label: "Monto", type: "number", required: true },
+    { name: "amount", label: "Monto", type: "currency", required: true },
     {
       name: "currency",
       label: "Moneda",
@@ -158,14 +158,14 @@ export default function SupplierDetail() {
     {
       name: "usd_divisa_rate",
       label: "Cotización USD Divisa",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD divisa. Necesario para conversión.",
       placeholder: "Ej: 1050",
     },
     {
       name: "usd_blue_rate",
       label: "Cotización USD Blue",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD blue. Necesario si el pago es en USD Billete o ARS.",
       placeholder: "Ej: 1200",
     },

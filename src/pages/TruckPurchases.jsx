@@ -57,7 +57,7 @@ export default function TruckPurchases() {
       hint: "Porcentaje de descuento sobre el peso bruto. Ej: 1.5",
       placeholder: "Ej: 1.5",
     },
-    { name: "price_per_ton", label: "Precio por Tonelada", type: "number", required: true },
+    { name: "price_per_ton", label: "Precio por Tonelada", type: "currency", required: true },
     {
       name: "price_currency",
       label: "Moneda del Precio",
@@ -71,14 +71,14 @@ export default function TruckPurchases() {
     {
       name: "usd_divisa_rate",
       label: "Cotización USD Divisa",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD divisa. Necesario si el precio está en USD Blue.",
       placeholder: "Ej: 1050",
     },
     {
       name: "usd_blue_rate",
       label: "Cotización USD Blue",
-      type: "number",
+      type: "currency",
       hint: "ARS por 1 USD blue. Necesario si el precio está en USD Blue.",
       placeholder: "Ej: 1200",
     },
@@ -99,7 +99,7 @@ export default function TruckPurchases() {
     {
       name: "sale_price_per_ton",
       label: "Precio de Venta por Tonelada (USD Divisa)",
-      type: "number",
+      type: "currency",
       hint: "Solo si se completó Comprador (venta directa).",
       placeholder: "Ej: 990",
     },
