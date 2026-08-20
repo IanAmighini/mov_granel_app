@@ -239,17 +239,19 @@ export function getAgreementPartyName(agreement, suppliers, buyers) {
 export function calcRefineryStock(movements) {
   const byOilType = {};
   for (const m of movements) {
-    if (!byOilType[m.oil_type]) byOilType[m.oil_type] = { crudeIn: 0, refinedOut: 0, stock: 0 };
+    if (!byOilType[m.oil_type]) byOilType[m.oil_type] = { crudeIn: 0, refinedOut: 0, adjustments: 0, stock: 0 };
     if (m.movement_type === "crude_in") byOilType[m.oil_type].crudeIn += m.tons || 0;
     if (m.movement_type === "refined_out") byOilType[m.oil_type].refinedOut += m.tons || 0;
+    if (m.movement_type === "adjustment") byOilType[m.oil_type].adjustments += m.tons || 0;
   }
-  const total = { crudeIn: 0, refinedOut: 0, stock: 0 };
+  const total = { crudeIn: 0, refinedOut: 0, adjustments: 0, stock: 0 };
   for (const key of Object.keys(byOilType)) {
-    byOilType[key].stock = byOilType[key].crudeIn - byOilType[key].refinedOut;
+    byOilType[key].stock = byOilType[key].crudeIn - byOilType[key].refinedOut + byOilType[key].adjustments;
     total.crudeIn += byOilType[key].crudeIn;
     total.refinedOut += byOilType[key].refinedOut;
+    total.adjustments += byOilType[key].adjustments;
   }
-  total.stock = total.crudeIn - total.refinedOut;
+  total.stock = total.crudeIn - total.refinedOut + total.adjustments;
   return { byOilType, total };
 }
 
