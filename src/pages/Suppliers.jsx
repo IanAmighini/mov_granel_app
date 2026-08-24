@@ -9,6 +9,7 @@ import PageHeader from "@/components/PageHeader";
 import { useOilData } from "@/hooks/useOilData";
 import { calcSupplierBalance, formatUsd, accountCurrencyLabels } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
+import { useAuth } from "@/lib/AuthContext";
 
 const fields = [
   { name: "name", label: "Nombre", required: true, placeholder: "Nombre del proveedor" },
@@ -30,6 +31,7 @@ const fields = [
 
 export default function Suppliers() {
   const { data, loading, refetch } = useOilData();
+  const { isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
@@ -63,9 +65,11 @@ export default function Suppliers() {
         title="Proveedores"
         description="Gestión de proveedores y cuentas corrientes"
         action={
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" /> Nuevo Proveedor
-          </Button>
+          isAdmin && (
+            <Button onClick={handleCreate}>
+              <Plus className="w-4 h-4 mr-2" /> Nuevo Proveedor
+            </Button>
+          )
         }
       />
 
@@ -117,12 +121,14 @@ export default function Suppliers() {
                         {formatUsd(balance)}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(s)}>
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <DeleteButton onDelete={() => handleDelete(s.id)} label={`el proveedor ${s.name}`} />
-                        </div>
+                        {isAdmin && (
+                          <div className="flex items-center gap-1">
+                            <Button variant="ghost" size="sm" onClick={() => handleEdit(s)}>
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <DeleteButton onDelete={() => handleDelete(s.id)} label={`el proveedor ${s.name}`} />
+                          </div>
+                        )}
                       </TableCell>
                     </TableRow>
                   );

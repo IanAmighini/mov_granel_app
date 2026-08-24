@@ -9,6 +9,7 @@ import PageHeader from "@/components/PageHeader";
 import { useOilData } from "@/hooks/useOilData";
 import { calcBuyerBalance, formatUsd, formatTons } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
+import { useAuth } from "@/lib/AuthContext";
 
 const fields = [
   { name: "name", label: "Nombre", required: true, placeholder: "Nombre del comprador" },
@@ -34,6 +35,7 @@ const fields = [
 
 export default function Buyers() {
   const { data, loading, refetch } = useOilData();
+  const { isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
@@ -64,9 +66,11 @@ export default function Buyers() {
         title="Compradores"
         description="Clientes a los que se les vende aceite refinado."
         action={
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" /> Nuevo Comprador
-          </Button>
+          isAdmin && (
+            <Button onClick={handleCreate}>
+              <Plus className="w-4 h-4 mr-2" /> Nuevo Comprador
+            </Button>
+          )
         }
       />
 
@@ -121,10 +125,14 @@ export default function Buyers() {
                               <Eye className="w-4 h-4" />
                             </Button>
                           </Link>
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(b)}>
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <DeleteButton onDelete={() => handleDelete(b.id)} label={`el comprador ${b.name}`} />
+                          {isAdmin && (
+                            <>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(b)}>
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <DeleteButton onDelete={() => handleDelete(b.id)} label={`el comprador ${b.name}`} />
+                            </>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

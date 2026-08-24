@@ -21,9 +21,11 @@ import {
   decrementAgreement,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function TruckPurchases() {
   const { data, loading, refetch } = useOilData();
+  const { isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
@@ -141,10 +143,8 @@ export default function TruckPurchases() {
           gross_tons: values.tons,
         });
       } else if (linkedMovement && isDirectSale) {
-        // Se cambió de refinería a venta directa: ya no corresponde el movimiento de stock
         await sheetsClient.entities.RefineryMovement.delete(linkedMovement.id);
       } else if (!linkedMovement && values.refinery_id) {
-        // Se cambió de venta directa a refinería: crear el movimiento
         const netTons = (values.tons || 0) * (1 - (values.discount_percent || 0) / 100);
         await sheetsClient.entities.RefineryMovement.create({
           date: values.date,
@@ -215,9 +215,11 @@ export default function TruckPurchases() {
         title="Compras de Camiones"
         description="Registro de compras de aceite crudo a granel. El ingreso a refinería es automático, salvo venta directa a un Comprador."
         action={
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" /> Nueva Compra
-          </Button>
+          isAdmin && (
+            <Button onClick={handleCreate}>
+              <Plus className="w-4 h-4 mr-2" /> Nueva Compra
+            </Button>
+          )
         }
       />
 
@@ -291,12 +293,14 @@ export default function TruckPurchases() {
                       {formatUsd(calcTruckPurchaseUsdDivisa(p))}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(p)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <DeleteButton onDelete={() => handleDelete(p.id)} label="esta compra" />
-                      </div>
+                      {isAdmin && (
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(p)}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <DeleteButton onDelete={() => handleDelete(p.id)} label="esta compra" />
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

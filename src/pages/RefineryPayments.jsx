@@ -16,9 +16,11 @@ import {
   todayStr,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function RefineryPayments() {
   const { data, loading, refetch } = useOilData();
+  const { isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
@@ -98,9 +100,11 @@ export default function RefineryPayments() {
         title="Pagos a Refinerías"
         description="Registro de pagos y saldos iniciales con refinerías"
         action={
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" /> Nuevo Pago
-          </Button>
+          isAdmin && (
+            <Button onClick={handleCreate}>
+              <Plus className="w-4 h-4 mr-2" /> Nuevo Pago
+            </Button>
+          )
         }
       />
 
@@ -161,12 +165,14 @@ export default function RefineryPayments() {
                     </TableCell>
                     <TableCell className="text-slate-400 max-w-[200px] truncate">{p.notes || "—"}</TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(p)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <DeleteButton onDelete={() => handleDelete(p.id)} label="este pago" />
-                      </div>
+                      {isAdmin && (
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(p)}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <DeleteButton onDelete={() => handleDelete(p.id)} label="este pago" />
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

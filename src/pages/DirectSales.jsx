@@ -8,9 +8,11 @@ import PageHeader from "@/components/PageHeader";
 import { useOilData } from "@/hooks/useOilData";
 import { formatDate, formatTons, oilTypeLabels, currencyLabels, todayStr } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function DirectSales() {
   const { data, loading, refetch } = useOilData();
+  const { isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
@@ -109,9 +111,11 @@ export default function DirectSales() {
         title="Ventas Directas"
         description="Ventas propias de MRT: retiro de un origen y venta directa a un comprador, sin pasar por el stock de una refinería."
         action={
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" /> Nueva Venta
-          </Button>
+          isAdmin && (
+            <Button onClick={handleCreate}>
+              <Plus className="w-4 h-4 mr-2" /> Nueva Venta
+            </Button>
+          )
         }
       />
 
@@ -153,12 +157,14 @@ export default function DirectSales() {
                   <TableCell className="text-slate-500">{currencyLabels[s.price_currency]}</TableCell>
                   <TableCell className="text-slate-500">{s.ticket_number || "—"}</TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(s)}>
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <DeleteButton onDelete={() => handleDelete(s.id)} label="esta venta" />
-                    </div>
+                    {isAdmin && (
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(s)}>
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <DeleteButton onDelete={() => handleDelete(s.id)} label="esta venta" />
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

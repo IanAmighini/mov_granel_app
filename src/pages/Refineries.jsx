@@ -15,6 +15,7 @@ import {
   pricingTypeLabels,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
+import { useAuth } from "@/lib/AuthContext";
 
 const fields = [
   { name: "name", label: "Nombre", required: true, placeholder: "Nombre de la refinería" },
@@ -42,6 +43,7 @@ const fields = [
 
 export default function Refineries() {
   const { data, loading, refetch } = useOilData();
+  const { isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
@@ -75,9 +77,11 @@ export default function Refineries() {
         title="Refinerías"
         description="Gestión de refinerías, stock y cuentas corrientes"
         action={
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" /> Nueva Refinería
-          </Button>
+          isAdmin && (
+            <Button onClick={handleCreate}>
+              <Plus className="w-4 h-4 mr-2" /> Nueva Refinería
+            </Button>
+          )
         }
       />
 
@@ -132,10 +136,14 @@ export default function Refineries() {
                               <Eye className="w-4 h-4" />
                             </Button>
                           </Link>
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(r)}>
-                            <Pencil className="w-4 h-4" />
-                          </Button>
-                          <DeleteButton onDelete={() => handleDelete(r.id)} label={`la refinería ${r.name}`} />
+                          {isAdmin && (
+                            <>
+                              <Button variant="ghost" size="sm" onClick={() => handleEdit(r)}>
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <DeleteButton onDelete={() => handleDelete(r.id)} label={`la refinería ${r.name}`} />
+                            </>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

@@ -20,10 +20,12 @@ import {
   todayStr,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function BuyerDetail() {
   const { id } = useParams();
   const { data, loading, refetch } = useOilData();
+  const { isAdmin } = useAuth();
   const [paymentDialog, setPaymentDialog] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
 
@@ -186,11 +188,13 @@ export default function BuyerDetail() {
         </Card>
       </div>
 
-      <div className="mb-4">
-        <Button variant="outline" onClick={handleCreatePayment}>
-          <Plus className="w-4 h-4 mr-2" /> Nuevo Pago / Saldo Inicial
-        </Button>
-      </div>
+      {isAdmin && (
+        <div className="mb-4">
+          <Button variant="outline" onClick={handleCreatePayment}>
+            <Plus className="w-4 h-4 mr-2" /> Nuevo Pago / Saldo Inicial
+          </Button>
+        </div>
+      )}
 
       <p className="text-xs text-slate-400 mb-2">
         Las compras, egresos y ventas directas se cargan desde sus respectivas pantallas. Acá solo se gestionan los pagos.
@@ -230,7 +234,7 @@ export default function BuyerDetail() {
                     {formatUsd(t.runningBalance)}
                   </TableCell>
                   <TableCell>
-                    {t.type === "payment" && (
+                    {t.type === "payment" && isAdmin && (
                       <div className="flex items-center gap-1">
                         <Button
                           variant="ghost"

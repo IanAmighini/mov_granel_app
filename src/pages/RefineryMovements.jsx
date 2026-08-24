@@ -17,9 +17,11 @@ import {
   decrementAgreement,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function RefineryMovements() {
   const { data, loading, refetch } = useOilData();
+  const { isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
@@ -144,9 +146,11 @@ export default function RefineryMovements() {
         title="Egresos de Refinería"
         description="Retiro de aceite refinado. Descuenta stock de la refinería e imputa en la cuenta del comprador."
         action={
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" /> Nuevo Egreso
-          </Button>
+          isAdmin && (
+            <Button onClick={handleCreate}>
+              <Plus className="w-4 h-4 mr-2" /> Nuevo Egreso
+            </Button>
+          )
         }
       />
 
@@ -199,12 +203,14 @@ export default function RefineryMovements() {
                       )}
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(m)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <DeleteButton onDelete={() => handleDelete(m.id)} label="este egreso" />
-                      </div>
+                      {isAdmin && (
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(m)}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <DeleteButton onDelete={() => handleDelete(m.id)} label="este egreso" />
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

@@ -17,9 +17,11 @@ import {
   todayStr,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function PurchaseAgreements() {
   const { data, loading, refetch } = useOilData();
+  const { isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [activeTab, setActiveTab] = useState("purchase_crude");
@@ -153,7 +155,7 @@ export default function PurchaseAgreements() {
                   <TableRow key={a.id}>
                     <TableCell className="text-slate-500">{formatDate(a.date)}</TableCell>
                     <TableCell className="font-medium">
-                      {getAgreementPartyName(a, data.suppliers, data.refineries)}
+                      {getAgreementPartyName(a, data.suppliers, data.buyers)}
                     </TableCell>
                     <TableCell>
                       <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
@@ -186,12 +188,14 @@ export default function PurchaseAgreements() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => handleEdit(a)}>
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <DeleteButton onDelete={() => handleDelete(a.id)} label="este acuerdo" />
-                      </div>
+                      {isAdmin && (
+                        <div className="flex items-center gap-1">
+                          <Button variant="ghost" size="sm" onClick={() => handleEdit(a)}>
+                            <Pencil className="w-4 h-4" />
+                          </Button>
+                          <DeleteButton onDelete={() => handleDelete(a.id)} label="este acuerdo" />
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 );
@@ -211,9 +215,11 @@ export default function PurchaseAgreements() {
         title="Acuerdos Comerciales"
         description="Acuerdos por cantidad de entregas: compras de crudo, ventas de crudo y ventas de refinado."
         action={
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" /> Nuevo Acuerdo
-          </Button>
+          isAdmin && (
+            <Button onClick={handleCreate}>
+              <Plus className="w-4 h-4 mr-2" /> Nuevo Acuerdo
+            </Button>
+          )
         }
       />
 

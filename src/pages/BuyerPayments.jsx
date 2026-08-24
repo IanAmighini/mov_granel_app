@@ -9,9 +9,11 @@ import PageHeader from "@/components/PageHeader";
 import { useOilData } from "@/hooks/useOilData";
 import { formatDate, formatUsd, formatArs, currencyLabels, todayStr } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function BuyerPayments() {
   const { data, loading, refetch } = useOilData();
+  const { isAdmin } = useAuth();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
@@ -93,11 +95,13 @@ export default function BuyerPayments() {
     <div>
       <PageHeader
         title="Pagos de Compradores"
-        description="Registro de pagos recibidos de compradores y saldos iniciales."
+        description="Registro de pagos que nos hacen los compradores por el aceite entregado, y saldos iniciales."
         action={
-          <Button onClick={handleCreate}>
-            <Plus className="w-4 h-4 mr-2" /> Nuevo Pago
-          </Button>
+          isAdmin && (
+            <Button onClick={handleCreate}>
+              <Plus className="w-4 h-4 mr-2" /> Nuevo Pago
+            </Button>
+          )
         }
       />
 
@@ -151,12 +155,14 @@ export default function BuyerPayments() {
                     )}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(p)}>
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <DeleteButton onDelete={() => handleDelete(p.id)} label="este pago" />
-                    </div>
+                    {isAdmin && (
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(p)}>
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <DeleteButton onDelete={() => handleDelete(p.id)} label="este pago" />
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

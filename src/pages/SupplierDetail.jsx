@@ -20,10 +20,12 @@ import {
   todayStr,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function SupplierDetail() {
   const { id } = useParams();
   const { data, loading, refetch } = useOilData();
+  const { isAdmin } = useAuth();
   const [purchaseDialog, setPurchaseDialog] = useState(false);
   const [editingPurchase, setEditingPurchase] = useState(null);
   const [paymentDialog, setPaymentDialog] = useState(false);
@@ -297,14 +299,16 @@ export default function SupplierDetail() {
         </Card>
       </div>
 
-      <div className="flex gap-2 mb-4">
-        <Button onClick={handleCreatePurchase}>
-          <Plus className="w-4 h-4 mr-2" /> Nueva Compra
-        </Button>
-        <Button variant="outline" onClick={handleCreatePayment}>
-          <Plus className="w-4 h-4 mr-2" /> Nuevo Pago / Saldo Inicial
-        </Button>
-      </div>
+      {isAdmin && (
+        <div className="flex gap-2 mb-4">
+          <Button onClick={handleCreatePurchase}>
+            <Plus className="w-4 h-4 mr-2" /> Nueva Compra
+          </Button>
+          <Button variant="outline" onClick={handleCreatePayment}>
+            <Plus className="w-4 h-4 mr-2" /> Nuevo Pago / Saldo Inicial
+          </Button>
+        </div>
+      )}
 
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <Table>
@@ -344,24 +348,26 @@ export default function SupplierDetail() {
                     {formatUsd(t.runningBalance)}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => (t.type === "purchase" ? handleEditPurchase(t) : handleEditPayment(t))}
-                        className="text-slate-400 hover:text-slate-900 hover:bg-slate-100"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteTransaction(t)}
-                        className="text-slate-400 hover:text-rose-600 hover:bg-rose-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    {isAdmin && (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => (t.type === "purchase" ? handleEditPurchase(t) : handleEditPayment(t))}
+                          className="text-slate-400 hover:text-slate-900 hover:bg-slate-100"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteTransaction(t)}
+                          className="text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

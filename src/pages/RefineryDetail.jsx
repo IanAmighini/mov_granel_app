@@ -22,10 +22,12 @@ import {
   todayStr,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
+import { useAuth } from "@/lib/AuthContext";
 
 export default function RefineryDetail() {
   const { id } = useParams();
   const { data, loading, refetch } = useOilData();
+  const { isAdmin } = useAuth();
   const [movementDialog, setMovementDialog] = useState(false);
   const [editingMovement, setEditingMovement] = useState(null);
   const [paymentDialog, setPaymentDialog] = useState(false);
@@ -353,9 +355,11 @@ export default function RefineryDetail() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-semibold text-slate-700">Stock por Tipo de Aceite</h2>
-            <Button variant="outline" size="sm" onClick={handleCreateAdjustment}>
-              <Plus className="w-3.5 h-3.5 mr-1.5" /> Ajuste de Stock
-            </Button>
+            {isAdmin && (
+              <Button variant="outline" size="sm" onClick={handleCreateAdjustment}>
+                <Plus className="w-3.5 h-3.5 mr-1.5" /> Ajuste de Stock
+              </Button>
+            )}
           </div>
           <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
             <Table>
@@ -438,19 +442,21 @@ export default function RefineryDetail() {
                         </TableCell>
                         <TableCell className="text-slate-400 max-w-[160px] truncate">{a.notes || "—"}</TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => handleEditAdjustment(a)}>
-                              <Pencil className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteAdjustment(a.id)}
-                              className="text-slate-400 hover:text-rose-600 hover:bg-rose-50"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
+                          {isAdmin && (
+                            <div className="flex items-center gap-1">
+                              <Button variant="ghost" size="sm" onClick={() => handleEditAdjustment(a)}>
+                                <Pencil className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleDeleteAdjustment(a.id)}
+                                className="text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -483,14 +489,16 @@ export default function RefineryDetail() {
               </p>
             </Card>
           </div>
-          <div className="flex gap-2 mt-4">
-            <Button onClick={handleCreateMovement}>
-              <Plus className="w-4 h-4 mr-2" /> Nuevo Egreso / Saldo Inicial
-            </Button>
-            <Button variant="outline" onClick={handleCreatePayment}>
-              <Plus className="w-4 h-4 mr-2" /> Nuevo Pago / Saldo Inicial
-            </Button>
-          </div>
+          {isAdmin && (
+            <div className="flex gap-2 mt-4">
+              <Button onClick={handleCreateMovement}>
+                <Plus className="w-4 h-4 mr-2" /> Nuevo Egreso / Saldo Inicial
+              </Button>
+              <Button variant="outline" onClick={handleCreatePayment}>
+                <Plus className="w-4 h-4 mr-2" /> Nuevo Pago / Saldo Inicial
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -533,24 +541,26 @@ export default function RefineryDetail() {
                     {formatUsd(t.runningBalance)}
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => (t.type === "movement" ? handleEditMovement(t) : handleEditPayment(t))}
-                        className="text-slate-400 hover:text-slate-900 hover:bg-slate-100"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteTransaction(t)}
-                        className="text-slate-400 hover:text-rose-600 hover:bg-rose-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    {isAdmin && (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => (t.type === "movement" ? handleEditMovement(t) : handleEditPayment(t))}
+                          className="text-slate-400 hover:text-slate-900 hover:bg-slate-100"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteTransaction(t)}
+                          className="text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
