@@ -101,6 +101,7 @@ export default function ResourceFormDialog({
       onOpenChange(false);
     } catch (err) {
       console.error(err);
+      alert(err.message || "Ocurrió un error al guardar.");
     } finally {
       setSubmitting(false);
     }
