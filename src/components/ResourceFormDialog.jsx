@@ -53,6 +53,16 @@ function CurrencyInput({ value, onChange, placeholder }) {
   );
 }
 
+/**
+ * Cada campo (`fields`) puede tener, además de lo de siempre:
+ * - showIf: (values, context) => boolean   → si devuelve false, el campo no se muestra ni se envía.
+ * - required: boolean | (values, context) => boolean   → puede depender de otros campos.
+ * - dynamicHint: (values, context) => string | null → texto de ayuda calculado en vivo (reemplaza a `hint` si devuelve algo).
+ * - dynamicOptions: (values, context) => [{value, label}] → para selects cuyas opciones dependen de otros campos.
+ *
+ * `context` es cualquier dato extra que la pantalla quiera pasarle a los campos
+ * (ej: la lista de acuerdos vigentes) para poder calcular showIf/required/dynamicHint/dynamicOptions.
+ */
 export default function ResourceFormDialog({
   open,
   onOpenChange,
@@ -61,6 +71,7 @@ export default function ResourceFormDialog({
   initialValues,
   onSubmit,
   submitLabel = "Guardar",
+  context = {},
 }) {
   const [values, setValues] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -79,24 +90,31 @@ export default function ResourceFormDialog({
   const setField = (name, value) => setValues((prev) => ({ ...prev, [name]: value }));
 
   const isNumericType = (type) => type === "number" || type === "currency";
+  const isRequired = (f) => (typeof f.required === "function" ? f.required(values, context) : !!f.required);
+
+  const visibleFields = fields.filter((f) => !f.showIf || f.showIf(values, context));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
     try {
       const payload = {};
-      fields.forEach((f) => {
+      for (const f of visibleFields) {
         const v = values[f.name];
         if (f.type === "checkbox") {
           payload[f.name] = !!v;
-        } else if (v === "" || v === undefined || v === null) {
-          if (f.required) {
-            payload[f.name] = isNumericType(f.type) ? 0 : "";
+          continue;
+        }
+        if (v === "" || v === undefined || v === null) {
+          if (isRequired(f)) {
+            alert(`Completá el campo "${f.label}".`);
+            setSubmitting(false);
+            return;
           }
         } else {
           payload[f.name] = isNumericType(f.type) ? parseFloat(v) : v;
         }
-      });
+      }
       await onSubmit(payload);
       onOpenChange(false);
     } catch (err) {
@@ -114,8 +132,10 @@ export default function ResourceFormDialog({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {fields.map((f) =>
-            f.type === "checkbox" ? (
+          {visibleFields.map((f) => {
+            const dynamicHintText = f.dynamicHint ? f.dynamicHint(values, context) : null;
+
+            return f.type === "checkbox" ? (
               <div key={f.name} className="flex items-start space-x-2">
                 <Checkbox
                   id={f.name}
@@ -126,39 +146,49 @@ export default function ResourceFormDialog({
                   <Label htmlFor={f.name} className="text-sm font-normal cursor-pointer">
                     {f.checkboxLabel || f.label}
                   </Label>
-                  {f.hint && <p className="text-xs text-slate-400">{f.hint}</p>}
+                  {(dynamicHintText || f.hint) && (
+                    <p className="text-xs text-slate-400">{dynamicHintText || f.hint}</p>
+                  )}
                 </div>
               </div>
             ) : (
               <div key={f.name} className="space-y-1.5">
                 <Label>
                   {f.label}
-                  {f.required && <span className="text-rose-500"> *</span>}
+                  {isRequired(f) && <span className="text-rose-500"> *</span>}
                 </Label>
-                {f.type === "select" ? (
-                  <Select
-                    value={values[f.name] || ""}
-                    onValueChange={(v) => setField(f.name, v)}
-                    disabled={f.options?.length === 0}
-                  >
-                    <SelectTrigger>
-                      <SelectValue
-                        placeholder={
-                          f.options?.length === 0
-                            ? "No hay opciones disponibles"
-                            : f.placeholder || "Seleccionar..."
-                        }
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {f.options?.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>
-                          {o.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : f.type === "textarea" ? (
+                {dynamicHintText && (
+                  <p className="text-xs font-medium text-emerald-600 bg-emerald-50 rounded-md px-2 py-1">
+                    {dynamicHintText}
+                  </p>
+                )}
+                {f.type === "select" ? (() => {
+                  const opts = f.dynamicOptions ? f.dynamicOptions(values, context) : f.options;
+                  return (
+                    <Select
+                      value={values[f.name] || ""}
+                      onValueChange={(v) => setField(f.name, v)}
+                      disabled={opts?.length === 0}
+                    >
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            opts?.length === 0
+                              ? "No hay opciones disponibles"
+                              : f.placeholder || "Seleccionar..."
+                          }
+                        />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {opts?.map((o) => (
+                          <SelectItem key={o.value} value={o.value}>
+                            {o.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  );
+                })() : f.type === "textarea" ? (
                   <Textarea
                     value={values[f.name] || ""}
                     onChange={(e) => setField(f.name, e.target.value)}
@@ -179,10 +209,10 @@ export default function ResourceFormDialog({
                     placeholder={f.placeholder}
                   />
                 )}
-                {f.hint && <p className="text-xs text-slate-400">{f.hint}</p>}
+                {!dynamicHintText && f.hint && <p className="text-xs text-slate-400">{f.hint}</p>}
               </div>
-            )
-          )}
+            );
+          })}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar

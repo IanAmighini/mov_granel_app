@@ -23,6 +23,16 @@ import {
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
 
+function getOpenAgreements(agreements, partyId, oilType) {
+  return (agreements || []).filter(
+    (a) =>
+      a.agreement_type === "purchase_crude" &&
+      a.status === "open" &&
+      a.oil_type === oilType &&
+      (a.party_id === partyId || a.supplier_id === partyId)
+  );
+}
+
 export default function TruckPurchases() {
   const { data, loading, refetch } = useOilData();
   const { isAdmin } = useAuth();
@@ -30,6 +40,16 @@ export default function TruckPurchases() {
   const [editingItem, setEditingItem] = useState(null);
 
   if (loading || !data) return <p className="text-slate-500">Cargando...</p>;
+
+  const context = {
+    suppliers: data.suppliers,
+    agreements: data.purchaseAgreements,
+  };
+
+  const supplierNeedsRates = (values, ctx) => {
+    const supplier = ctx.suppliers.find((s) => s.id === values.supplier_id);
+    return values.price_currency === "usd_blue" || supplier?.account_currency === "usd_billete";
+  };
 
   const fields = [
     { name: "date", label: "Fecha", type: "date", required: true, defaultValue: todayStr() },
@@ -59,7 +79,36 @@ export default function TruckPurchases() {
       hint: "Porcentaje de descuento sobre el peso bruto. Ej: 1.5",
       placeholder: "Ej: 1.5",
     },
-    { name: "price_per_ton", label: "Precio por Tonelada", type: "currency", required: true },
+    {
+      name: "price_per_ton",
+      label: "Precio por Tonelada",
+      type: "currency",
+      required: true,
+      dynamicHint: (values, ctx) => {
+        if (!values.supplier_id || !values.oil_type) return null;
+        const matches = getOpenAgreements(ctx.agreements, values.supplier_id, values.oil_type);
+        if (matches.length !== 1) return null; // si hay 0 o 2+, no mostramos hint acá (2+ tiene su propio selector abajo)
+        const agreement = matches[0];
+        const pending = (agreement.total_deliveries || 0) - (agreement.delivered_count || 0);
+        return `Acuerdo vigente: ${agreement.price_per_ton} ${agreement.price_currency === "usd_divisa" ? "USD Divisa" : "USD Blue"} — quedan ${pending} entrega${pending === 1 ? "" : "s"}`;
+      },
+    },
+    {
+      name: "agreement_id",
+      label: "¿A qué acuerdo corresponde?",
+      type: "select",
+      showIf: (values, ctx) => {
+        if (!values.supplier_id || !values.oil_type) return false;
+        return getOpenAgreements(ctx.agreements, values.supplier_id, values.oil_type).length >= 2;
+      },
+      options: [],
+      dynamicOptions: (values, ctx) =>
+        getOpenAgreements(ctx.agreements, values.supplier_id, values.oil_type).map((a) => ({
+          value: a.id,
+          label: `${a.price_per_ton} ${a.price_currency === "usd_divisa" ? "USD Divisa" : "USD Blue"} — ${a.delivered_count || 0}/${a.total_deliveries} entregado (${formatDate(a.date)})`,
+        })),
+      hint: "Este proveedor tiene más de un acuerdo vigente con el mismo aceite. Elegí a cuál corresponde esta compra.",
+    },
     {
       name: "price_currency",
       label: "Moneda del Precio",
@@ -74,36 +123,48 @@ export default function TruckPurchases() {
       name: "usd_divisa_rate",
       label: "Cotización USD Divisa",
       type: "currency",
-      hint: "ARS por 1 USD divisa. Necesario si el precio está en USD Blue.",
+      hint: "ARS por 1 USD divisa.",
       placeholder: "Ej: 1050",
+      showIf: supplierNeedsRates,
     },
     {
       name: "usd_blue_rate",
       label: "Cotización USD Blue",
       type: "currency",
-      hint: "ARS por 1 USD blue. Necesario si el precio está en USD Blue.",
+      hint: "ARS por 1 USD blue.",
       placeholder: "Ej: 1200",
+      showIf: supplierNeedsRates,
+    },
+    {
+      name: "is_direct_sale",
+      label: "¿Es venta directa a un Comprador?",
+      type: "checkbox",
+      checkboxLabel: "Sí, este camión se vende directo (no pasa por una refinería)",
+      defaultValue: !!editingItem?.buyer_id,
     },
     {
       name: "refinery_id",
       label: "Refinería de Destino",
       type: "select",
       options: data.refineries.map((r) => ({ value: r.id, label: r.name })),
-      hint: "Dejar vacío si esta compra se vende DIRECTO a un Comprador (completar el campo de abajo en ese caso).",
+      showIf: (values) => !values.is_direct_sale,
+      required: (values) => !values.is_direct_sale,
     },
     {
       name: "buyer_id",
-      label: "Comprador (venta directa)",
+      label: "Comprador",
       type: "select",
       options: data.buyers.map((b) => ({ value: b.id, label: b.name })),
-      hint: "Completar SOLO si el camión se vende directo, sin pasar por una refinería. No completar junto con Refinería.",
+      showIf: (values) => !!values.is_direct_sale,
+      required: (values) => !!values.is_direct_sale,
     },
     {
       name: "sale_price_per_ton",
       label: "Precio de Venta por Tonelada (USD Divisa)",
       type: "currency",
-      hint: "Solo si se completó Comprador (venta directa).",
       placeholder: "Ej: 990",
+      showIf: (values) => !!values.is_direct_sale,
+      required: (values) => !!values.is_direct_sale,
     },
     { name: "ticket_number", label: "N° de Remito/Ticket" },
     { name: "notes", label: "Notas", type: "textarea" },
@@ -120,20 +181,12 @@ export default function TruckPurchases() {
   };
 
   const handleSubmit = async (values) => {
-    if (!values.refinery_id && !values.buyer_id) {
-      alert("Completá Refinería de Destino o Comprador (venta directa).");
-      return;
-    }
-    if (values.refinery_id && values.buyer_id) {
-      alert("Completá SOLO uno: Refinería de Destino o Comprador, no ambos.");
-      return;
-    }
-    const isDirectSale = !!values.buyer_id;
+    const isDirectSale = !!values.is_direct_sale;
 
     if (editingItem) {
       await sheetsClient.entities.TruckPurchase.update(editingItem.id, values);
       const linkedMovement = data.refineryMovements.find((m) => m.truck_purchase_id === editingItem.id);
-      if (linkedMovement && values.refinery_id) {
+      if (linkedMovement && !isDirectSale) {
         const netTons = (values.tons || 0) * (1 - (values.discount_percent || 0) / 100);
         await sheetsClient.entities.RefineryMovement.update(linkedMovement.id, {
           date: values.date,
@@ -144,7 +197,7 @@ export default function TruckPurchases() {
         });
       } else if (linkedMovement && isDirectSale) {
         await sheetsClient.entities.RefineryMovement.delete(linkedMovement.id);
-      } else if (!linkedMovement && values.refinery_id) {
+      } else if (!linkedMovement && !isDirectSale) {
         const netTons = (values.tons || 0) * (1 - (values.discount_percent || 0) / 100);
         await sheetsClient.entities.RefineryMovement.create({
           date: values.date,
@@ -158,9 +211,9 @@ export default function TruckPurchases() {
         });
       }
     } else {
-      const purchaseAgreement = findMatchingAgreement(
-        data.purchaseAgreements, values.supplier_id, values.oil_type, "purchase_crude"
-      );
+      const purchaseAgreement = values.agreement_id
+        ? data.purchaseAgreements.find((a) => a.id === values.agreement_id)
+        : findMatchingAgreement(data.purchaseAgreements, values.supplier_id, values.oil_type, "purchase_crude");
       const saleAgreement = isDirectSale
         ? findMatchingAgreement(data.purchaseAgreements, values.buyer_id, values.oil_type, "sale_crude")
         : null;
@@ -321,6 +374,7 @@ export default function TruckPurchases() {
         initialValues={editingItem}
         onSubmit={handleSubmit}
         submitLabel={editingItem ? "Guardar" : "Registrar Compra"}
+        context={context}
       />
     </div>
   );

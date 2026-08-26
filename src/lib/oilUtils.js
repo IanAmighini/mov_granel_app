@@ -264,15 +264,16 @@ export function calcAgreementProgress(agreement) {
 }
 
 export function findMatchingAgreement(agreements, partyId, oilType, agreementType) {
-  return (agreements || []).find(
+  const matches = (agreements || []).filter(
     (a) =>
       a.agreement_type === agreementType &&
       a.status === "open" &&
       a.oil_type === oilType &&
       (a.party_id === partyId || a.supplier_id === partyId)
   );
+  if (matches.length === 0) return undefined;
+  return matches.sort((a, b) => new Date(a.date) - new Date(b.date))[0];
 }
-
 export async function incrementAgreement(agreement) {
   if (!agreement) return;
   const newCount = (agreement.delivered_count || 0) + 1;
