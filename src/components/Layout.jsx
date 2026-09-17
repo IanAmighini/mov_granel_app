@@ -19,14 +19,16 @@ import {
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
+  // Primero las fichas de las tres partes, después las operaciones y al
+  // final los pagos de cada una, en el mismo orden que las fichas.
   { to: "/proveedores", label: "Proveedores", icon: Users },
   { to: "/refinerias", label: "Refinerías", icon: Factory },
   { to: "/compradores", label: "Compradores", icon: Building2 },
-  { to: "/compras", label: "Compras", icon: Truck },
   { to: "/acuerdos", label: "Acuerdos", icon: FileText },
+  { to: "/compras", label: "Compras", icon: Truck },
+  { to: "/movimientos-refineria", label: "Egresos de Refinería", icon: ArrowRightLeft },
   { to: "/ventas-directas", label: "Ventas Directas", icon: ShoppingCart },
   { to: "/pagos-proveedores", label: "Pagos a Proveedores", icon: Banknote },
-  { to: "/movimientos-refineria", label: "Egresos de Refinería", icon: ArrowRightLeft },
   { to: "/pagos-refinerias", label: "Pagos a Refinerías", icon: CreditCard },
   { to: "/pagos-compradores", label: "Pagos de Compradores", icon: Wallet },
 ];

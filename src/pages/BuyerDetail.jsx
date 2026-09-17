@@ -1,24 +1,19 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import ResourceFormDialog from "@/components/ResourceFormDialog";
+import AccountLedger from "@/components/AccountLedger";
 import { useOilData } from "@/hooks/useOilData";
 import {
   calcBuyerBalance,
-  calcRefinedSaleUsdDivisa,
-  calcDirectSaleUsdDivisa,
-  calcNetTons,
-  convertToUsdDivisa,
   formatUsd,
-  formatDate,
   formatTons,
-  oilTypeLabels,
-  currencyLabels,
   todayStr,
+  adjustmentFields,
 } from "@/lib/oilUtils";
+import { buyerLedger } from "@/lib/ledger";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -27,6 +22,7 @@ export default function BuyerDetail() {
   const { data, loading, refetch } = useOilData();
   const { isAdmin } = useAuth();
   const [paymentDialog, setPaymentDialog] = useState(false);
+  const [ctaAdjustDialog, setCtaAdjustDialog] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
 
   if (loading || !data) return <p className="text-slate-500">Cargando...</p>;
@@ -47,63 +43,11 @@ export default function BuyerDetail() {
     data.purchaseAgreements
   );
 
-  const transactions = [
-    ...movements.map((m) => {
-      const sourceRefinery = data.refineries.find((r) => r.id === m.refinery_id);
-      return {
-        id: m.id,
-        date: m.date,
-        description: `Refinado ${oilTypeLabels[m.oil_type]} — ${formatTons(m.tons)} (desde ${sourceRefinery?.name || "—"})`,
-        debit: calcRefinedSaleUsdDivisa(m, data.purchaseAgreements),
-        credit: 0,
-        type: "movement",
-      };
-    }),
-    ...directTruckPurchases.map((p) => ({
-      id: p.id,
-      date: p.date,
-      description: `Compra Directa ${oilTypeLabels[p.oil_type]} — ${formatTons(calcNetTons(p))}`,
-      debit: calcNetTons(p) * (p.sale_price_per_ton || 0),
-      credit: 0,
-      type: "truckPurchase",
-    })),
-    ...directSales.map((s) => ({
-      id: s.id,
-      date: s.date,
-      description: `Venta Directa ${oilTypeLabels[s.oil_type]} — ${formatTons(s.tons)}`,
-      debit: calcDirectSaleUsdDivisa(s),
-      credit: 0,
-      type: "directSale",
-    })),
-    ...payments.map((p) => {
-      if (p.is_initial_balance) {
-        return {
-          id: p.id,
-          date: p.date,
-          description: "Saldo Inicial",
-          debit: (p.amount || 0) > 0 ? p.amount : 0,
-          credit: (p.amount || 0) < 0 ? Math.abs(p.amount) : 0,
-          type: "payment",
-        };
-      }
-      return {
-        id: p.id,
-        date: p.date,
-        description: `Pago ${currencyLabels[p.currency]} — ${p.amount}`,
-        debit: 0,
-        credit: convertToUsdDivisa(p.amount, p.currency, p.usd_divisa_rate, p.usd_blue_rate),
-        type: "payment",
-      };
-    }),
-  ].sort((a, b) => new Date(a.date) - new Date(b.date));
-
-  let running = 0;
-  const withBalance = transactions
-    .map((t) => {
-      running += t.debit - t.credit;
-      return { ...t, runningBalance: running };
-    })
-    .reverse();
+  const ledger = buyerLedger(
+    buyer,
+    { movements, truckPurchases: directTruckPurchases, directSales, payments },
+    data.purchaseAgreements
+  );
 
   const paymentFields = [
     { name: "date", label: "Fecha", type: "date", required: true, defaultValue: todayStr() },
@@ -138,6 +82,18 @@ export default function BuyerDetail() {
     setEditingPayment(item);
     setPaymentDialog(true);
   };
+  // Ajuste de cuenta corriente: un asiento con signo, en la moneda de la
+  // cuenta y sin conversión. Reemplaza al truco de cargar un pago con las
+  // cotizaciones en 1 a 1, o de monto negativo.
+  const handleCtaAdjustSubmit = async (values) => {
+    await sheetsClient.entities.BuyerPayment.create({
+      ...values,
+      buyer_id: id,
+      kind: "adjustment",
+    });
+    refetch();
+  };
+
   const handlePaymentSubmit = async (values) => {
     if (editingPayment) {
       await sheetsClient.entities.BuyerPayment.update(editingPayment.id, { ...values, buyer_id: id });
@@ -146,6 +102,24 @@ export default function BuyerDetail() {
     }
     refetch();
   };
+  const esPago = (row) => (data.buyerPayments || []).some((x) => x.id === row.id);
+
+  const handleLedgerEdit = (row) => {
+    if (!esPago(row)) {
+      alert("Las compras, egresos y ventas directas se editan desde sus propias pantallas.");
+      return;
+    }
+    handleEditPayment(data.buyerPayments.find((x) => x.id === row.id));
+  };
+
+  const handleLedgerDelete = (row) => {
+    if (!esPago(row)) {
+      alert("Las compras, egresos y ventas directas se borran desde sus propias pantallas.");
+      return;
+    }
+    if (window.confirm("¿Eliminar este pago?")) handleDeletePayment(row.id);
+  };
+
   const handleDeletePayment = async (paymentId) => {
     await sheetsClient.entities.BuyerPayment.delete(paymentId);
     refetch();
@@ -193,6 +167,9 @@ export default function BuyerDetail() {
           <Button variant="outline" onClick={handleCreatePayment}>
             <Plus className="w-4 h-4 mr-2" /> Nuevo Pago / Saldo Inicial
           </Button>
+          <Button variant="outline" onClick={() => setCtaAdjustDialog(true)}>
+            <Plus className="w-4 h-4 mr-2" /> Ajuste de Cuenta
+          </Button>
         </div>
       )}
 
@@ -200,67 +177,11 @@ export default function BuyerDetail() {
         Las compras, egresos y ventas directas se cargan desde sus respectivas pantallas. Acá solo se gestionan los pagos.
       </p>
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Fecha</TableHead>
-              <TableHead>Descripción</TableHead>
-              <TableHead className="text-right">Debe (USD Divisa)</TableHead>
-              <TableHead className="text-right">Haber (USD Divisa)</TableHead>
-              <TableHead className="text-right">Saldo Acum.</TableHead>
-              <TableHead className="w-20"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {withBalance.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-slate-400 py-8">
-                  Sin movimientos
-                </TableCell>
-              </TableRow>
-            ) : (
-              withBalance.map((t) => (
-                <TableRow key={`${t.type}-${t.id}`}>
-                  <TableCell className="text-slate-500">{formatDate(t.date)}</TableCell>
-                  <TableCell className="font-medium">{t.description}</TableCell>
-                  <TableCell className="text-right text-rose-600">{t.debit > 0 ? formatUsd(t.debit) : "—"}</TableCell>
-                  <TableCell className="text-right text-emerald-600">{t.credit > 0 ? formatUsd(t.credit) : "—"}</TableCell>
-                  <TableCell
-                    className={`text-right font-semibold ${
-                      t.runningBalance > 0.01 ? "text-emerald-600" : t.runningBalance < -0.01 ? "text-rose-600" : "text-slate-400"
-                    }`}
-                  >
-                    {formatUsd(t.runningBalance)}
-                  </TableCell>
-                  <TableCell>
-                    {t.type === "payment" && isAdmin && (
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEditPayment(t)}
-                          className="text-slate-400 hover:text-slate-900 hover:bg-slate-100"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeletePayment(t.id)}
-                          className="text-slate-400 hover:text-rose-600 hover:bg-rose-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      <AccountLedger
+        ledger={ledger}
+        onEdit={isAdmin ? handleLedgerEdit : undefined}
+        onDelete={isAdmin ? handleLedgerDelete : undefined}
+      />
 
       <ResourceFormDialog
         open={paymentDialog}
@@ -273,6 +194,14 @@ export default function BuyerDetail() {
         initialValues={editingPayment}
         onSubmit={handlePaymentSubmit}
         submitLabel={editingPayment ? "Guardar" : "Registrar"}
+      />
+      <ResourceFormDialog
+        open={ctaAdjustDialog}
+        onOpenChange={setCtaAdjustDialog}
+        title={`Ajuste de Cuenta Corriente — ${buyer.name}`}
+        fields={adjustmentFields("USD Divisa")}
+        onSubmit={handleCtaAdjustSubmit}
+        submitLabel="Registrar Ajuste"
       />
     </div>
   );

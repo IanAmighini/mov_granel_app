@@ -81,15 +81,23 @@ export default function Dashboard() {
   });
   const totalBuyerBalance = buyerStats.reduce((sum, b) => sum + b.balance, 0);
 
-  const suppliersWeOwe = suppliers
-    .map((s) => {
-      const purchases = truckPurchases.filter((p) => p.supplier_id === s.id);
-      const payments = supplierPayments.filter((p) => p.supplier_id === s.id);
-      const accountCurrency = s.account_currency || "usd_divisa";
-      return { ...s, balance: calcSupplierBalance(purchases, payments, accountCurrency).balance, accountCurrency };
-    })
+  const supplierBalances = suppliers.map((s) => {
+    const purchases = truckPurchases.filter((p) => p.supplier_id === s.id);
+    const payments = supplierPayments.filter((p) => p.supplier_id === s.id);
+    const accountCurrency = s.account_currency || "usd_divisa";
+    return { ...s, balance: calcSupplierBalance(purchases, payments, accountCurrency).balance, accountCurrency };
+  });
+
+  const suppliersWeOwe = supplierBalances
     .filter((s) => s.balance > 0.01)
     .sort((a, b) => b.balance - a.balance)
+    .slice(0, 10);
+
+  // Saldo negativo en un proveedor = le pagamos de más, o hubo un ajuste a
+  // nuestro favor. Se listan aparte porque son plata a recuperar, no deuda.
+  const suppliersOweUs = supplierBalances
+    .filter((s) => s.balance < -0.01)
+    .sort((a, b) => a.balance - b.balance)
     .slice(0, 10);
 
   const activeAgreements = (data.purchaseAgreements || []).filter((a) => a.status === "open");
@@ -181,6 +189,49 @@ export default function Dashboard() {
           </Table>
         </div>
       </div>
+
+      {suppliersOweUs.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-lg font-semibold text-slate-900">Proveedores — Los que nos deben</h2>
+            <Link to="/proveedores">
+              <Button variant="ghost" size="sm">
+                Ver todos <ArrowRight className="w-4 h-4 ml-1" />
+              </Button>
+            </Link>
+          </div>
+          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-10">#</TableHead>
+                  <TableHead>Proveedor</TableHead>
+                  <TableHead>Moneda</TableHead>
+                  <TableHead className="text-right">Saldo a favor</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {suppliersOweUs.map((s, idx) => (
+                  <TableRow key={s.id}>
+                    <TableCell className="text-slate-400 font-medium">{idx + 1}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link to={`/proveedores/${s.id}`} className="hover:text-emerald-600">
+                        {s.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-slate-500 text-xs">
+                      {accountCurrencyLabels[s.accountCurrency]}
+                    </TableCell>
+                    <TableCell className="text-right font-semibold text-emerald-600">
+                      {formatUsd(Math.abs(s.balance))}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      )}
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">

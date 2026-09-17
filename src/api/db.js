@@ -92,7 +92,10 @@ function toDb(entity, data) {
   delete o.net_tons;
 
   if (PAYMENTS.includes(entity)) {
-    if ("is_initial_balance" in o) {
+    // Un `kind` explícito (ej: "adjustment") manda sobre el booleano viejo.
+    if ("kind" in o) {
+      delete o.is_initial_balance;
+    } else if ("is_initial_balance" in o) {
       o.kind = o.is_initial_balance ? "initial_balance" : "payment";
       delete o.is_initial_balance;
     }

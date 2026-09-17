@@ -1,27 +1,28 @@
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ResourceFormDialog from "@/components/ResourceFormDialog";
+import AccountLedger from "@/components/AccountLedger";
 import { useOilData } from "@/hooks/useOilData";
 import {
   calcRefineryBalance,
   calcRefineryStock,
-  convertToUsdDivisa,
   findMatchingAgreement,
   incrementAgreement,
   decrementAgreement,
   formatUsd,
-  formatDate,
   formatTons,
   oilTypeLabels,
-  currencyLabels,
   pricingTypeLabels,
   todayStr,
+  adjustmentFields,
   driverSuggestions,
 } from "@/lib/oilUtils";
+import { refineryLedger, refineryStockLedger } from "@/lib/ledger";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -32,6 +33,7 @@ export default function RefineryDetail() {
   const [movementDialog, setMovementDialog] = useState(false);
   const [editingMovement, setEditingMovement] = useState(null);
   const [paymentDialog, setPaymentDialog] = useState(false);
+  const [ctaAdjustDialog, setCtaAdjustDialog] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
   const [adjustmentDialog, setAdjustmentDialog] = useState(false);
   const [editingAdjustment, setEditingAdjustment] = useState(null);
@@ -47,73 +49,15 @@ export default function RefineryDetail() {
   const stock = calcRefineryStock(movements);
   const { totalCharges, totalPayments, balance } = calcRefineryBalance(refinery, movements, payments, purchases);
 
-  const ledgerMovements = movements.filter((m) => m.movement_type !== "adjustment");
-  const adjustments = movements
-    .filter((m) => m.movement_type === "adjustment")
-    .sort((a, b) => new Date(b.date) - new Date(a.date));
-
-  const transactions = [
-    ...ledgerMovements.map((m) => {
-      let debit = 0;
-      let description = "";
-
-      if (m.is_initial_balance) {
-        description = `Saldo Inicial — ${oilTypeLabels[m.oil_type]} — ${formatTons(m.tons)}`;
-        if (refinery.pricing_type === "ingress_per_ton") {
-          debit = (m.gross_tons || m.tons || 0) * (refinery.processing_cost_per_ton || 0);
-        }
-      } else {
-        if (refinery.pricing_type === "ingress_per_ton" && m.movement_type === "crude_in") {
-          debit = (m.gross_tons || m.tons || 0) * (refinery.processing_cost_per_ton || 0);
-        } else if (refinery.pricing_type === "egress_per_ton" && m.movement_type === "refined_out") {
-          debit = (m.tons || 0) * (refinery.processing_cost_per_ton || 0);
-        }
-
-        const moveLabel = m.movement_type === "crude_in" ? "Ingreso" : "Egreso";
-        const destBuyer = data.buyers?.find((b) => b.id === m.destination);
-        const destSuffix = m.destination ? ` → ${destBuyer?.name || m.destination}` : "";
-        description = `${moveLabel} — ${oilTypeLabels[m.oil_type]} — ${formatTons(m.tons)}${destSuffix}`;
-      }
-
-      return {
-        ...m,
-        id: m.id,
-        date: m.date,
-        description,
-        debit,
-        credit: 0,
-        type: "movement",
-      };
-    }),
-    ...payments.map((p) => {
-      if (p.is_initial_balance) {
-        return {
-          id: p.id,
-          date: p.date,
-          description: "Saldo Inicial",
-          debit: (p.amount || 0) > 0 ? p.amount : 0,
-          credit: (p.amount || 0) < 0 ? Math.abs(p.amount) : 0,
-          type: "payment",
-        };
-      }
-      return {
-        id: p.id,
-        date: p.date,
-        description: `Pago ${currencyLabels[p.currency]} — ${p.amount}`,
-        debit: 0,
-        credit: convertToUsdDivisa(p.amount, p.currency, p.usd_divisa_rate, p.usd_blue_rate),
-        type: "payment",
-      };
-    }),
-  ].sort((a, b) => new Date(a.date) - new Date(b.date));
-
-  let running = 0;
-  const withBalance = transactions
-    .map((t) => {
-      running += t.debit - t.credit;
-      return { ...t, runningBalance: running };
-    })
-    .reverse();
+  // El origen de un ingreso es el proveedor de la compra que lo generó, así
+  // que estos tres hacen falta para resolver la columna Origen - Destino.
+  const ctxPartes = {
+    suppliers: data.suppliers,
+    buyers: data.buyers,
+    truckPurchases: data.truckPurchases,
+  };
+  const ledger = refineryLedger(refinery, { movements, payments, ...ctxPartes });
+  const stockLedger = refineryStockLedger(refinery, movements, ctxPartes);
 
   const movementFields = [
     { name: "date", label: "Fecha", type: "date", required: true, defaultValue: todayStr() },
@@ -210,7 +154,7 @@ export default function RefineryDetail() {
     { name: "notes", label: "Notas", type: "textarea" },
   ];
 
-  const adjustmentFields = [
+  const stockAdjustmentFields = [
     { name: "date", label: "Fecha", type: "date", required: true, defaultValue: todayStr() },
     {
       name: "oil_type",
@@ -296,6 +240,18 @@ export default function RefineryDetail() {
     setPaymentDialog(true);
   };
 
+  // Ajuste de cuenta corriente: un asiento con signo, en la moneda de la
+  // cuenta y sin conversión. Reemplaza al truco de cargar un pago con las
+  // cotizaciones en 1 a 1, o de monto negativo.
+  const handleCtaAdjustSubmit = async (values) => {
+    await sheetsClient.entities.RefineryPayment.create({
+      ...values,
+      refinery_id: id,
+      kind: "adjustment",
+    });
+    refetch();
+  };
+
   const handlePaymentSubmit = async (values) => {
     if (editingPayment) {
       await sheetsClient.entities.RefineryPayment.update(editingPayment.id, { ...values, refinery_id: id });
@@ -303,6 +259,22 @@ export default function RefineryDetail() {
       await sheetsClient.entities.RefineryPayment.create({ ...values, refinery_id: id });
     }
     refetch();
+  };
+
+  // Volver de la fila del ledger al registro original: pasarle la fila al
+  // formulario lo abre sin datos.
+  const handleLedgerEdit = (row) => {
+    if (row.kind === "payment" || row.kind === "initial" || row.kind === "adjustment") {
+      const pago = data.refineryPayments.find((x) => x.id === row.id);
+      if (pago) return handleEditPayment(pago);
+    }
+    const mov = data.refineryMovements.find((x) => x.id === row.id);
+    if (mov) handleEditMovement(mov);
+  };
+
+  const handleLedgerDelete = (row) => {
+    const esMovimiento = data.refineryMovements.some((x) => x.id === row.id);
+    handleDeleteTransaction({ id: row.id, type: esMovimiento ? "movement" : "payment" });
   };
 
   const handleDeleteTransaction = async (t) => {
@@ -337,6 +309,18 @@ export default function RefineryDetail() {
       await sheetsClient.entities.RefineryMovement.create(adjustmentData);
     }
     refetch();
+  };
+
+  const handleStockEdit = (row) => {
+    const mov = data.refineryMovements.find((x) => x.id === row.id);
+    if (!mov) return;
+    if (mov.movement_type === "adjustment") handleEditAdjustment(mov);
+    else handleEditMovement(mov);
+  };
+
+  const handleStockDelete = (row) => {
+    if (!window.confirm("¿Eliminar este movimiento de stock?")) return;
+    handleDeleteAdjustment(row.id);   // borra el RefineryMovement, sea del tipo que sea
   };
 
   const handleDeleteAdjustment = async (adjustmentId) => {
@@ -421,58 +405,6 @@ export default function RefineryDetail() {
             </Table>
           </div>
 
-          {adjustments.length > 0 && (
-            <div className="mt-4">
-              <h3 className="text-xs font-semibold text-slate-500 mb-2">Historial de Ajustes</h3>
-              <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Fecha</TableHead>
-                      <TableHead>Aceite</TableHead>
-                      <TableHead className="text-right">Tn</TableHead>
-                      <TableHead>Motivo</TableHead>
-                      <TableHead className="w-20"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {adjustments.map((a) => (
-                      <TableRow key={a.id}>
-                        <TableCell className="text-slate-500">{formatDate(a.date)}</TableCell>
-                        <TableCell>{oilTypeLabels[a.oil_type]}</TableCell>
-                        <TableCell
-                          className={`text-right font-medium ${
-                            (a.tons || 0) > 0 ? "text-emerald-600" : "text-rose-600"
-                          }`}
-                        >
-                          {(a.tons || 0) > 0 ? "+" : ""}
-                          {formatTons(a.tons)}
-                        </TableCell>
-                        <TableCell className="text-slate-400 max-w-[160px] truncate">{a.notes || "—"}</TableCell>
-                        <TableCell>
-                          {isAdmin && (
-                            <div className="flex items-center gap-1">
-                              <Button variant="ghost" size="sm" onClick={() => handleEditAdjustment(a)}>
-                                <Pencil className="w-4 h-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleDeleteAdjustment(a.id)}
-                                className="text-slate-400 hover:text-rose-600 hover:bg-rose-50"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </div>
-          )}
         </div>
 
         <div>
@@ -505,77 +437,42 @@ export default function RefineryDetail() {
               <Button variant="outline" onClick={handleCreatePayment}>
                 <Plus className="w-4 h-4 mr-2" /> Nuevo Pago / Saldo Inicial
               </Button>
+              <Button variant="outline" onClick={() => setCtaAdjustDialog(true)}>
+                <Plus className="w-4 h-4 mr-2" /> Ajuste de Cuenta
+              </Button>
             </div>
           )}
         </div>
       </div>
 
-      <h2 className="text-sm font-semibold text-slate-700 mb-3">Movimientos de Cta. Cte.</h2>
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Fecha</TableHead>
-              <TableHead>Descripción</TableHead>
-              <TableHead className="text-right">Debe (USD Divisa)</TableHead>
-              <TableHead className="text-right">Haber (USD Divisa)</TableHead>
-              <TableHead className="text-right">Saldo Acum.</TableHead>
-              <TableHead className="w-20"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {withBalance.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-slate-400 py-8">
-                  Sin movimientos
-                </TableCell>
-              </TableRow>
-            ) : (
-              withBalance.map((t) => (
-                <TableRow key={t.id}>
-                  <TableCell className="text-slate-500">{formatDate(t.date)}</TableCell>
-                  <TableCell className="font-medium">{t.description}</TableCell>
-                  <TableCell className="text-right text-rose-600">
-                    {t.debit > 0 ? formatUsd(t.debit) : "—"}
-                  </TableCell>
-                  <TableCell className="text-right text-emerald-600">
-                    {t.credit > 0 ? formatUsd(t.credit) : "—"}
-                  </TableCell>
-                  <TableCell
-                    className={`text-right font-semibold ${
-                      t.runningBalance > 0.01 ? "text-rose-600" : t.runningBalance < -0.01 ? "text-emerald-600" : "text-slate-400"
-                    }`}
-                  >
-                    {formatUsd(t.runningBalance)}
-                  </TableCell>
-                  <TableCell>
-                    {isAdmin && (
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => (t.type === "movement" ? handleEditMovement(t) : handleEditPayment(t))}
-                          className="text-slate-400 hover:text-slate-900 hover:bg-slate-100"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteTransaction(t)}
-                          className="text-slate-400 hover:text-rose-600 hover:bg-rose-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {/* Dos libros separados: el aceite y la plata. Una misma descarga
+          aparece en los dos, porque el cargo del fasón se calcula sobre esas
+          toneladas, pero son dos historias distintas.
+
+          En pestañas y no una debajo de la otra: apiladas, cuanto más crecía
+          el stock más abajo quedaba el saldo de la cuenta corriente. */}
+      <Tabs defaultValue="stock">
+        <TabsList className="mb-3">
+          <TabsTrigger value="stock">Stock de Aceite</TabsTrigger>
+          <TabsTrigger value="cuenta">Cuenta Corriente</TabsTrigger>
+        </TabsList>
+        <TabsContent value="stock">
+          <AccountLedger
+            ledger={stockLedger}
+            heading="Stock de Aceite"
+            onEdit={isAdmin ? handleStockEdit : undefined}
+            onDelete={isAdmin ? handleStockDelete : undefined}
+          />
+        </TabsContent>
+        <TabsContent value="cuenta">
+          <AccountLedger
+            ledger={ledger}
+            heading="Cuenta Corriente"
+            onEdit={isAdmin ? handleLedgerEdit : undefined}
+            onDelete={isAdmin ? handleLedgerDelete : undefined}
+          />
+        </TabsContent>
+      </Tabs>
 
       <ResourceFormDialog
         open={movementDialog}
@@ -609,10 +506,18 @@ export default function RefineryDetail() {
           if (!open) setEditingAdjustment(null);
         }}
         title={editingAdjustment ? "Editar Ajuste" : `Nuevo Ajuste de Stock — ${refinery.name}`}
-        fields={adjustmentFields}
+        fields={stockAdjustmentFields}
         initialValues={editingAdjustment}
         onSubmit={handleAdjustmentSubmit}
         submitLabel={editingAdjustment ? "Guardar" : "Registrar Ajuste"}
+      />
+      <ResourceFormDialog
+        open={ctaAdjustDialog}
+        onOpenChange={setCtaAdjustDialog}
+        title={`Ajuste de Cuenta Corriente — ${refinery.name}`}
+        fields={adjustmentFields("USD Divisa")}
+        onSubmit={handleCtaAdjustSubmit}
+        submitLabel="Registrar Ajuste"
       />
     </div>
   );

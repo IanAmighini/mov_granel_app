@@ -54,7 +54,7 @@ create table suppliers (
 create table refineries (
   id                      uuid primary key default gen_random_uuid(),
   name                    text not null,
-  -- código corto para la columna ORIGEN-DESTINO de la planilla.
+  -- código corto para la columna Destino de la cuenta corriente.
   -- 'Oligra - Fason' -> 'OLI - FAS';  'Reasa - Fason' -> 'REA - FAS'
   code                    text,
   location                text,

@@ -351,3 +351,37 @@ export function driverSuggestions(data) {
   ].map((r) => (r.driver || "").trim()).filter(Boolean);
   return [...new Set(todos)].sort((a, b) => a.localeCompare(b, "es"));
 }
+
+/**
+ * Campos del ajuste de cuenta corriente.
+ *
+ * Existe porque pagan contra los kilos de carga y la refinería descarga otros:
+ * la diferencia se saldaba cargando un "pago" en billete con las dos
+ * cotizaciones forzadas a 1 para que no se convirtiera, o directamente un pago
+ * de monto negativo. Funcionaba, pero quedaba registrado como algo que no era,
+ * y bastaba con que alguien le corrigiera la cotización para mover el saldo.
+ *
+ * El monto va en la moneda de la cuenta y no se convierte. Positivo = a favor
+ * de MRT (baja lo que debemos), negativo = en contra.
+ */
+export function adjustmentFields(monedaLabel) {
+  return [
+    { name: "date", label: "Fecha", type: "date", required: true, defaultValue: todayStr() },
+    {
+      name: "amount",
+      label: `Monto del ajuste (${monedaLabel})`,
+      type: "currency",
+      required: true,
+      hint: "Con signo. Positivo: a favor nuestro, baja el saldo. Negativo: en contra, lo sube.",
+      placeholder: "Ej: 150,50  o  -101",
+    },
+    {
+      name: "notes",
+      label: "Motivo",
+      type: "textarea",
+      required: true,
+      placeholder: "Ej: diferencia entre kilos de carga y de descarga",
+      hint: "Obligatorio: un ajuste sin motivo es imposible de auditar después.",
+    },
+  ];
+}
