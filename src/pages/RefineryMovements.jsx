@@ -15,6 +15,7 @@ import {
   findMatchingAgreement,
   incrementAgreement,
   decrementAgreement,
+  driverSuggestions,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
@@ -75,6 +76,13 @@ export default function RefineryMovements() {
       type: "currency",
       hint: "ARS por 1 USD blue. Necesario si el precio del acuerdo está en USD Blue.",
       placeholder: "Ej: 1200",
+    },
+    {
+      name: "driver",
+      label: "Chofer",
+      placeholder: "Ej: Walter Viera",
+      hint: "Opcional. Si el camión no lo llevó un chofer nuestro, dejalo vacío.",
+      suggestions: (v, ctx) => ctx.drivers || [],
     },
     { name: "ticket_number", label: "N° de Remito/Ticket" },
     { name: "notes", label: "Notas", type: "textarea" },
@@ -228,6 +236,7 @@ export default function RefineryMovements() {
         }}
         title={editingItem ? "Editar Egreso" : "Nuevo Egreso de Refinería"}
         fields={fields}
+        context={{ drivers: driverSuggestions(data) }}
         initialValues={editingItem}
         onSubmit={handleSubmit}
         submitLabel={editingItem ? "Guardar" : "Registrar Egreso"}

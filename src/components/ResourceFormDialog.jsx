@@ -59,6 +59,9 @@ function CurrencyInput({ value, onChange, placeholder }) {
  * - required: boolean | (values, context) => boolean   → puede depender de otros campos.
  * - dynamicHint: (values, context) => string | null → texto de ayuda calculado en vivo (reemplaza a `hint` si devuelve algo).
  * - dynamicOptions: (values, context) => [{value, label}] → para selects cuyas opciones dependen de otros campos.
+ * - suggestions: (values, context) => string[] → autocompletado para campos de
+ *   texto libre. No restringe: sugiere valores ya usados (ej: choferes) para
+ *   que no haya que normalizar a mano ni mantener una tabla aparte.
  *
  * `context` es cualquier dato extra que la pantalla quiera pasarle a los campos
  * (ej: la lista de acuerdos vigentes) para poder calcular showIf/required/dynamicHint/dynamicOptions.
@@ -200,15 +203,30 @@ export default function ResourceFormDialog({
                     onChange={(v) => setField(f.name, v)}
                     placeholder={f.placeholder}
                   />
-                ) : (
-                  <Input
-                    type={f.type || "text"}
-                    step={f.type === "number" ? "0.01" : undefined}
-                    value={values[f.name] || ""}
-                    onChange={(e) => setField(f.name, e.target.value)}
-                    placeholder={f.placeholder}
-                  />
-                )}
+                ) : (() => {
+                  const sugerencias = f.suggestions ? f.suggestions(values, context) : null;
+                  const listId = sugerencias?.length ? `${f.name}-lista` : undefined;
+                  return (
+                    <>
+                      <Input
+                        type={f.type || "text"}
+                        step={f.type === "number" ? "0.01" : undefined}
+                        value={values[f.name] || ""}
+                        onChange={(e) => setField(f.name, e.target.value)}
+                        placeholder={f.placeholder}
+                        list={listId}
+                        autoComplete="off"
+                      />
+                      {listId && (
+                        <datalist id={listId}>
+                          {sugerencias.map((s) => (
+                            <option key={s} value={s} />
+                          ))}
+                        </datalist>
+                      )}
+                    </>
+                  );
+                })()}
                 {!dynamicHintText && f.hint && <p className="text-xs text-slate-400">{f.hint}</p>}
               </div>
             );

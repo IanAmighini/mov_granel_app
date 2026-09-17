@@ -128,6 +128,7 @@ create table truck_purchases (
   buyer_id            uuid references buyers(id)     on delete restrict,
   sale_price_per_ton  numeric(14,4),
 
+  driver              text,   -- opcional: a veces no lo lleva un chofer nuestro
   ticket_number       text,
   notes               text,
 
@@ -171,6 +172,7 @@ create table refinery_movements (
   usd_blue_rate       numeric(14,4),
 
   is_initial_balance boolean not null default false,
+  driver             text,   -- opcional, igual que en las compras
   ticket_number      text,
   notes              text,
   purchase_agreement_id uuid references purchase_agreements(id) on delete set null,

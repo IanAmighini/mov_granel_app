@@ -18,6 +18,7 @@ import {
   currencyLabels,
   accountCurrencyLabels,
   todayStr,
+  driverSuggestions,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
@@ -139,6 +140,13 @@ export default function SupplierDetail() {
       type: "select",
       required: true,
       options: data.refineries.map((r) => ({ value: r.id, label: r.name })),
+    },
+    {
+      name: "driver",
+      label: "Chofer",
+      placeholder: "Ej: Walter Viera",
+      hint: "Opcional. Si el camión no lo llevó un chofer nuestro, dejalo vacío.",
+      suggestions: (v, ctx) => ctx.drivers || [],
     },
     { name: "ticket_number", label: "N° de Remito/Ticket" },
     { name: "notes", label: "Notas", type: "textarea" },
@@ -384,6 +392,7 @@ export default function SupplierDetail() {
         }}
         title={editingPurchase ? "Editar Compra" : `Nueva Compra — ${supplier.name}`}
         fields={purchaseFields}
+        context={{ drivers: driverSuggestions(data) }}
         initialValues={editingPurchase}
         onSubmit={handlePurchaseSubmit}
         submitLabel={editingPurchase ? "Guardar" : "Registrar Compra"}

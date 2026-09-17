@@ -19,6 +19,7 @@ import {
   findMatchingAgreement,
   incrementAgreement,
   decrementAgreement,
+  driverSuggestions,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
@@ -44,6 +45,7 @@ export default function TruckPurchases() {
   const context = {
     suppliers: data.suppliers,
     agreements: data.purchaseAgreements,
+    drivers: driverSuggestions(data),
   };
 
   const supplierNeedsRates = (values, ctx) => {
@@ -165,6 +167,13 @@ export default function TruckPurchases() {
       placeholder: "Ej: 990",
       showIf: (values) => !!values.is_direct_sale,
       required: (values) => !!values.is_direct_sale,
+    },
+    {
+      name: "driver",
+      label: "Chofer",
+      placeholder: "Ej: Walter Viera",
+      hint: "Opcional. Si el camión no lo llevó un chofer nuestro, dejalo vacío.",
+      suggestions: (v, ctx) => ctx.drivers || [],
     },
     { name: "ticket_number", label: "N° de Remito/Ticket" },
     { name: "notes", label: "Notas", type: "textarea" },

@@ -20,6 +20,7 @@ import {
   currencyLabels,
   pricingTypeLabels,
   todayStr,
+  driverSuggestions,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
@@ -154,6 +155,13 @@ export default function RefineryDetail() {
       type: "currency",
       hint: "ARS por 1 USD blue. Necesario si el precio está en USD Blue.",
       placeholder: "Ej: 1200",
+    },
+    {
+      name: "driver",
+      label: "Chofer",
+      placeholder: "Ej: Walter Viera",
+      hint: "Opcional. Si el camión no lo llevó un chofer nuestro, dejalo vacío.",
+      suggestions: (v, ctx) => ctx.drivers || [],
     },
     {
       name: "is_initial_balance",
@@ -577,6 +585,7 @@ export default function RefineryDetail() {
         }}
         title={editingMovement ? "Editar Movimiento" : `Nuevo Egreso / Saldo Inicial — ${refinery.name}`}
         fields={movementFields}
+        context={{ drivers: driverSuggestions(data) }}
         initialValues={editingMovement}
         onSubmit={handleMovementSubmit}
         submitLabel={editingMovement ? "Guardar" : "Registrar"}

@@ -336,3 +336,18 @@ export function calcBuyerBalance(buyer, { movements = [], directSales = [], truc
 
   return { totalCharges, totalPayments, balance: totalCharges - totalPayments, totalDeliveredTons };
 }
+/**
+ * Choferes ya cargados, para el autocompletado del campo.
+ *
+ * Se juntan de las compras y de los egresos de refinado, que son los dos
+ * lugares donde se registra. Es texto libre a propósito (conviven "Walter
+ * Viera", "Ojeda" y apodos), así que esto no normaliza nada: sólo evita tener
+ * que escribir el nombre completo cada vez.
+ */
+export function driverSuggestions(data) {
+  const todos = [
+    ...(data?.truckPurchases || []),
+    ...(data?.refineryMovements || []),
+  ].map((r) => (r.driver || "").trim()).filter(Boolean);
+  return [...new Set(todos)].sort((a, b) => a.localeCompare(b, "es"));
+}
