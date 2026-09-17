@@ -71,21 +71,35 @@ export function buildSheetData(ledger) {
 export async function exportLedgerToExcel(ledger, nombreArchivo) {
   const { default: writeExcelFile } = await import("write-excel-file/browser");
   const { data, columns } = buildSheetData(ledger);
-  await writeExcelFile(data, {
-    columns,
-    sheet: "Cuenta corriente",
-    fontFamily: "Calibri",
-    fontSize: 11,
-    // Título, leyenda, encabezados y totales quedan fijos al hacer scroll.
-    stickyRowsCount: 4,
-    fileName: nombreArchivo,
-  });
+
+  // Ojo con la firma, que no es la que sugiere el README:
+  //  - la versión de navegador NO toma `fileName`: devuelve un objeto y hay
+  //    que llamarle `.toFile(nombre)`. Pasarle `fileName` no falla ni avisa,
+  //    simplemente no descarga nada.
+  //  - las opciones van en DOS argumentos: el segundo es la hoja (columnas,
+  //    nombre, filas fijas) y el tercero el documento (tipografía).
+  await writeExcelFile(
+    data,
+    {
+      columns,
+      sheet: "Cuenta corriente",
+      // Título, leyenda, encabezados y totales quedan fijos al hacer scroll.
+      stickyRowsCount: 4,
+    },
+    { fontFamily: "Calibri", fontSize: 11 },
+  ).toFile(nombreArchivo);
 }
 
-/** "Biocedes - Sintiolo" -> "cuenta-corriente-biocedes-sintiolo-2026-09-17.xlsx" */
-export function nombreDeArchivo(nombre) {
-  const limpio = nombre
-    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+/**
+ * Arma el nombre del archivo desde el título del libro, que ya dice de qué se
+ * trata: "Cuenta corriente - Proveedor: Biocedes - Sintiolo" queda
+ * "cuenta-corriente-proveedor-biocedes-sintiolo-2026-09-17.xlsx", y el de
+ * stock queda "stock-de-aceite-reasa-fason-...". Sin prefijo fijo: agregarlo
+ * duplicaba el texto en un libro y mentía en el otro.
+ */
+export function nombreDeArchivo(titulo) {
+  const limpio = titulo
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-  return `cuenta-corriente-${limpio}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+  return `${limpio}-${new Date().toISOString().slice(0, 10)}.xlsx`;
 }
