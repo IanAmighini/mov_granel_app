@@ -22,3 +22,14 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Datos del negocio — nunca al repo.
+# Los scripts de migración sí se versionan; lo que generan, no:
+# son un volcado completo de saldos, proveedores y montos, y el historial
+# de git no se borra.
+*.xlsx
+supabase/import.sql
+supabase/baseline.json
+supabase/check.sql
+supabase/expected_totals.json
+supabase/verify_balances.sql
