@@ -20,6 +20,16 @@ function valorDeCelda(row, col) {
   if ((col.key === "debit" || col.key === "credit") && !v) {
     return { value: "", type: String };
   }
+  // El ticket es un entero, pero la columna es texto porque hay algunos que
+  // no son numeros ("s/n", "?"). Los que si lo son se exportan como numero
+  // para que Excel los reconozca; el resto queda como texto.
+  // Formato "0": sin decimales y SIN separador de miles — un ticket es 4580,
+  // no 4.580.
+  if (col.entero) {
+    const t = String(v ?? "").trim();
+    if (/^\d+$/.test(t)) return { value: Number(t), type: Number, format: "0" };
+    return { value: t, type: String };
+  }
   if (col.money || col.tons) {
     const n = Number(v);
     if (!v && v !== 0) return { value: "", type: String };

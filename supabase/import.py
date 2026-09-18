@@ -60,6 +60,23 @@ def as_date(v):
 def as_bool(v):
     return str(v).strip().lower() in ("true", "1", "sí", "si", "verdadero")
 
+def as_ticket(v):
+    """
+    El numero de ticket.
+
+    La planilla los guarda como numeros de Excel, asi que openpyxl devuelve
+    6070.0 y escribirlo tal cual en una columna de texto deja "6070.0". Son
+    enteros: se guardan sin decimales. Los que no son numericos ("?",
+    "Sin Numero de TK") pasan intactos, y por eso la columna es texto.
+    """
+    if v is None or v == "":
+        return None
+    if isinstance(v, float) and v.is_integer():
+        return str(int(v))
+    if isinstance(v, int):
+        return str(v)
+    return str(v).strip()
+
 def as_num(v):
     if v is None or v == "":
         return None
@@ -194,7 +211,7 @@ class Importer:
                 "refinery_id": r["refinery_id"] or None,
                 "buyer_id": r["buyer_id"] or None,
                 "sale_price_per_ton": as_num(r["sale_price_per_ton"]),
-                "ticket_number": r["ticket_number"], "notes": r["notes"],
+                "ticket_number": as_ticket(r["ticket_number"]), "notes": r["notes"],
                 "purchase_agreement_id": self.fk(r["purchase_agreement_id"],
                                                  "PurchaseAgreement", f"TruckPurchase {r['id']}"),
                 "sale_agreement_id": self.fk(r["sale_agreement_id"],
@@ -227,7 +244,7 @@ class Importer:
                 "usd_divisa_rate": as_num(r["usd_divisa_rate"]),
                 "usd_blue_rate": as_num(r["usd_blue_rate"]),
                 "is_initial_balance": as_bool(r["is_initial_balance"]),
-                "ticket_number": r["ticket_number"], "notes": r["notes"],
+                "ticket_number": as_ticket(r["ticket_number"]), "notes": r["notes"],
                 "created_at": r["created_date"]})
         self.emit("refinery_movements",
                   ["id", "date", "refinery_id", "movement_type", "oil_type", "tons",
@@ -245,7 +262,7 @@ class Importer:
                 "price_currency": r["price_currency"],
                 "usd_divisa_rate": as_num(r["usd_divisa_rate"]),
                 "usd_blue_rate": as_num(r["usd_blue_rate"]),
-                "ticket_number": r["ticket_number"], "notes": r["notes"],
+                "ticket_number": as_ticket(r["ticket_number"]), "notes": r["notes"],
                 "created_at": r["created_date"]}
                for r in self.s["DirectSale"] if not is_ghost(r)]
         self.emit("direct_sales",
