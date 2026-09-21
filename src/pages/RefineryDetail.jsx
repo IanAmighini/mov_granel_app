@@ -38,10 +38,10 @@ export default function RefineryDetail() {
   const [adjustmentDialog, setAdjustmentDialog] = useState(false);
   const [editingAdjustment, setEditingAdjustment] = useState(null);
 
-  if (loading || !data) return <p className="text-slate-500">Cargando...</p>;
+  if (loading || !data) return <p className="text-muted-foreground">Cargando...</p>;
 
   const refinery = data.refineries.find((r) => r.id === id);
-  if (!refinery) return <p className="text-slate-500">Refinería no encontrada</p>;
+  if (!refinery) return <p className="text-muted-foreground">Refinería no encontrada</p>;
 
   const movements = data.refineryMovements.filter((m) => m.refinery_id === id);
   const payments = data.refineryPayments.filter((p) => p.refinery_id === id);
@@ -330,30 +330,30 @@ export default function RefineryDetail() {
 
   return (
     <div>
-      <Link to="/refinerias" className="inline-flex items-center text-sm text-slate-500 hover:text-slate-900 mb-4">
+      <Link to="/refinerias" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
         <ArrowLeft className="w-4 h-4 mr-1" /> Volver a Refinerías
       </Link>
 
       <div className="flex flex-wrap items-center gap-3 mb-1">
-        <h1 className="text-2xl font-bold text-slate-900">{refinery.name}</h1>
-        <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+        <h1 className="text-2xl font-bold text-foreground">{refinery.name}</h1>
+        <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground">
           {pricingTypeLabels[refinery.pricing_type]}
         </span>
       </div>
-      {refinery.location && <p className="text-sm text-slate-500 mb-1">{refinery.location}</p>}
-      {refinery.notes && <p className="text-sm text-slate-400">{refinery.notes}</p>}
+      {refinery.location && <p className="text-sm text-muted-foreground mb-1">{refinery.location}</p>}
+      {refinery.notes && <p className="text-sm text-muted-foreground/70">{refinery.notes}</p>}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 mt-5">
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-semibold text-slate-700">Stock por Tipo de Aceite</h2>
+            <h2 className="text-sm font-semibold text-foreground">Stock por Tipo de Aceite</h2>
             {isAdmin && (
               <Button variant="outline" size="sm" onClick={handleCreateAdjustment}>
                 <Plus className="w-3.5 h-3.5 mr-1.5" /> Ajuste de Stock
               </Button>
             )}
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-xl border border-border overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -367,7 +367,7 @@ export default function RefineryDetail() {
               <TableBody>
                 {Object.keys(stock.byOilType).length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-slate-400 py-6">
+                    <TableCell colSpan={5} className="text-center text-muted-foreground/70 py-6">
                       Sin movimientos
                     </TableCell>
                   </TableRow>
@@ -375,11 +375,11 @@ export default function RefineryDetail() {
                   Object.entries(stock.byOilType).map(([key, val]) => (
                     <TableRow key={key}>
                       <TableCell className="font-medium">{oilTypeLabels[key]}</TableCell>
-                      <TableCell className="text-right text-slate-500">{formatTons(val.crudeIn)}</TableCell>
-                      <TableCell className="text-right text-slate-500">{formatTons(val.refinedOut)}</TableCell>
+                      <TableCell className="text-right text-muted-foreground">{formatTons(val.crudeIn)}</TableCell>
+                      <TableCell className="text-right text-muted-foreground">{formatTons(val.refinedOut)}</TableCell>
                       <TableCell
                         className={`text-right ${
-                          val.adjustments > 0.01 ? "text-emerald-600" : val.adjustments < -0.01 ? "text-rose-600" : "text-slate-400"
+                          val.adjustments > 0.01 ? "text-haber" : val.adjustments < -0.01 ? "text-debe" : "text-muted-foreground/70"
                         }`}
                       >
                         {val.adjustments === 0 ? "—" : `${val.adjustments > 0 ? "+" : ""}${formatTons(val.adjustments)}`}
@@ -388,13 +388,13 @@ export default function RefineryDetail() {
                     </TableRow>
                   ))
                 )}
-                <TableRow className="border-t-2 bg-slate-50">
+                <TableRow className="border-t-2 bg-muted">
                   <TableCell className="font-bold">Total</TableCell>
                   <TableCell className="text-right font-semibold">{formatTons(stock.total.crudeIn)}</TableCell>
                   <TableCell className="text-right font-semibold">{formatTons(stock.total.refinedOut)}</TableCell>
                   <TableCell
                     className={`text-right font-semibold ${
-                      stock.total.adjustments > 0.01 ? "text-emerald-600" : stock.total.adjustments < -0.01 ? "text-rose-600" : "text-slate-400"
+                      stock.total.adjustments > 0.01 ? "text-haber" : stock.total.adjustments < -0.01 ? "text-debe" : "text-muted-foreground/70"
                     }`}
                   >
                     {stock.total.adjustments === 0 ? "—" : `${stock.total.adjustments > 0 ? "+" : ""}${formatTons(stock.total.adjustments)}`}
@@ -408,21 +408,21 @@ export default function RefineryDetail() {
         </div>
 
         <div>
-          <h2 className="text-sm font-semibold text-slate-700 mb-3">Cuenta Corriente</h2>
+          <h2 className="text-sm font-semibold text-foreground mb-3">Cuenta Corriente</h2>
           <div className="grid grid-cols-3 gap-3">
             <Card className="p-4">
-              <p className="text-xs text-slate-500">Procesos (Debe)</p>
-              <p className="text-lg font-bold text-slate-900 mt-1">{formatUsd(totalCharges)}</p>
+              <p className="text-xs text-muted-foreground">Procesos (Debe)</p>
+              <p className="text-lg font-bold text-foreground mt-1">{formatUsd(totalCharges)}</p>
             </Card>
             <Card className="p-4">
-              <p className="text-xs text-slate-500">Pagos (Haber)</p>
-              <p className="text-lg font-bold text-slate-900 mt-1">{formatUsd(totalPayments)}</p>
+              <p className="text-xs text-muted-foreground">Pagos (Haber)</p>
+              <p className="text-lg font-bold text-foreground mt-1">{formatUsd(totalPayments)}</p>
             </Card>
             <Card className="p-4">
-              <p className="text-xs text-slate-500">Saldo</p>
+              <p className="text-xs text-muted-foreground">Saldo</p>
               <p
                 className={`text-lg font-bold mt-1 ${
-                  balance > 0.01 ? "text-rose-600" : balance < -0.01 ? "text-emerald-600" : "text-slate-400"
+                  balance > 0.01 ? "text-debe" : balance < -0.01 ? "text-haber" : "text-muted-foreground/70"
                 }`}
               >
                 {formatUsd(balance)}

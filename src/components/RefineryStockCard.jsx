@@ -16,15 +16,15 @@ export default function RefineryStockCard({ refinery, movements, payments, purch
 
   const balanceColor = isBuyer
     ? balance > 0.01
-      ? "text-emerald-600"
+      ? "text-haber"
       : balance < -0.01
-        ? "text-rose-600"
-        : "text-slate-400"
+        ? "text-debe"
+        : "text-muted-foreground/70"
     : balance > 0.01
-      ? "text-rose-600"
+      ? "text-debe"
       : balance < -0.01
-        ? "text-emerald-600"
-        : "text-slate-400";
+        ? "text-haber"
+        : "text-muted-foreground/70";
 
   const balanceLabel = isBuyer
     ? balance > 0.01
@@ -41,36 +41,36 @@ export default function RefineryStockCard({ refinery, movements, payments, purch
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between mb-3">
-        <Link to={`/refinerias/${refinery.id}`} className="font-semibold text-slate-900 hover:text-emerald-600">
+        <Link to={`/refinerias/${refinery.id}`} className="font-semibold text-foreground hover:text-primary">
           {refinery.name}
         </Link>
-        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground">
           {pricingTypeLabels[refinery.pricing_type]}
         </span>
       </div>
 
       <div className="space-y-1 mb-3">
         {Object.keys(stock.byOilType).length === 0 ? (
-          <p className="text-sm text-slate-400">Sin stock</p>
+          <p className="text-sm text-muted-foreground/70">Sin stock</p>
         ) : (
           Object.entries(stock.byOilType).map(([key, val]) => (
             <div key={key} className="flex justify-between text-sm">
-              <span className="text-slate-500">{oilTypeLabels[key]}</span>
+              <span className="text-muted-foreground">{oilTypeLabels[key]}</span>
               <span className="font-medium">{formatTons(val.stock)}</span>
             </div>
           ))
         )}
       </div>
 
-      <div className="flex justify-between text-sm pt-2 border-t border-slate-100">
-        <span className="font-semibold text-slate-700">Total Stock</span>
+      <div className="flex justify-between text-sm pt-2 border-t border-border">
+        <span className="font-semibold text-foreground">Total Stock</span>
         <span className="font-bold">{formatTons(stock.total.stock)}</span>
       </div>
 
-      <div className="flex justify-between items-center pt-2 mt-2 border-t border-slate-100">
+      <div className="flex justify-between items-center pt-2 mt-2 border-t border-border">
         <div>
-          <span className="text-sm text-slate-500">Saldo USD Divisa</span>
-          <span className="block text-xs text-slate-400">{balanceLabel}</span>
+          <span className="text-sm text-muted-foreground">Saldo USD Divisa</span>
+          <span className="block text-xs text-muted-foreground/70">{balanceLabel}</span>
         </div>
         <span className={`font-bold ${balanceColor}`}>{formatUsd(balance)}</span>
       </div>

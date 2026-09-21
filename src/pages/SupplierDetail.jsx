@@ -28,10 +28,10 @@ export default function SupplierDetail() {
   const [ctaAdjustDialog, setCtaAdjustDialog] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
 
-  if (loading || !data) return <p className="text-slate-500">Cargando...</p>;
+  if (loading || !data) return <p className="text-muted-foreground">Cargando...</p>;
 
   const supplier = data.suppliers.find((s) => s.id === id);
-  if (!supplier) return <p className="text-slate-500">Proveedor no encontrado</p>;
+  if (!supplier) return <p className="text-muted-foreground">Proveedor no encontrado</p>;
 
   const accountCurrency = supplier.account_currency || "usd_divisa";
   const purchases = data.truckPurchases.filter((p) => p.supplier_id === id);
@@ -258,44 +258,44 @@ export default function SupplierDetail() {
 
   return (
     <div>
-      <Link to="/proveedores" className="inline-flex items-center text-sm text-slate-500 hover:text-slate-900 mb-4">
+      <Link to="/proveedores" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
         <ArrowLeft className="w-4 h-4 mr-1" /> Volver a Proveedores
       </Link>
 
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-slate-900">{supplier.name}</h1>
-            <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+            <h1 className="text-2xl font-bold text-foreground">{supplier.name}</h1>
+            <span className="inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium bg-aviso/10 text-aviso border border-aviso/30">
               Cuenta en {currLabel}
             </span>
           </div>
-          {supplier.phone && <p className="text-sm text-slate-500 mt-1">{supplier.phone}</p>}
-          {supplier.notes && <p className="text-sm text-slate-400 mt-1">{supplier.notes}</p>}
+          {supplier.phone && <p className="text-sm text-muted-foreground mt-1">{supplier.phone}</p>}
+          {supplier.notes && <p className="text-sm text-muted-foreground/70 mt-1">{supplier.notes}</p>}
         </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         <Card className="p-4">
-          <p className="text-sm text-slate-500">Compras (Debe)</p>
-          <p className="text-xl font-bold text-slate-900 mt-1">{formatUsd(totalPurchases)}</p>
-          <p className="text-xs text-slate-400 mt-0.5">{currLabel}</p>
+          <p className="text-sm text-muted-foreground">Compras (Debe)</p>
+          <p className="text-xl font-bold text-foreground mt-1">{formatUsd(totalPurchases)}</p>
+          <p className="text-xs text-muted-foreground/70 mt-0.5">{currLabel}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-slate-500">Pagos (Haber)</p>
-          <p className="text-xl font-bold text-slate-900 mt-1">{formatUsd(totalPayments)}</p>
-          <p className="text-xs text-slate-400 mt-0.5">{currLabel}</p>
+          <p className="text-sm text-muted-foreground">Pagos (Haber)</p>
+          <p className="text-xl font-bold text-foreground mt-1">{formatUsd(totalPayments)}</p>
+          <p className="text-xs text-muted-foreground/70 mt-0.5">{currLabel}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-slate-500">Saldo</p>
+          <p className="text-sm text-muted-foreground">Saldo</p>
           <p
             className={`text-xl font-bold mt-1 ${
-              balance > 0.01 ? "text-rose-600" : balance < -0.01 ? "text-emerald-600" : "text-slate-400"
+              balance > 0.01 ? "text-debe" : balance < -0.01 ? "text-haber" : "text-muted-foreground/70"
             }`}
           >
             {formatUsd(balance)}
           </p>
-          <p className="text-xs text-slate-400 mt-0.5">{currLabel}</p>
+          <p className="text-xs text-muted-foreground/70 mt-0.5">{currLabel}</p>
         </Card>
       </div>
 

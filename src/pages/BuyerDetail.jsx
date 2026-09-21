@@ -25,10 +25,10 @@ export default function BuyerDetail() {
   const [ctaAdjustDialog, setCtaAdjustDialog] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
 
-  if (loading || !data) return <p className="text-slate-500">Cargando...</p>;
+  if (loading || !data) return <p className="text-muted-foreground">Cargando...</p>;
 
   const buyer = (data.buyers || []).find((b) => b.id === id);
-  if (!buyer) return <p className="text-slate-500">Comprador no encontrado</p>;
+  if (!buyer) return <p className="text-muted-foreground">Comprador no encontrado</p>;
 
   const movements = data.refineryMovements.filter(
     (m) => m.destination === id && m.movement_type === "refined_out" && !m.is_initial_balance
@@ -127,34 +127,34 @@ export default function BuyerDetail() {
 
   return (
     <div>
-      <Link to="/compradores" className="inline-flex items-center text-sm text-slate-500 hover:text-slate-900 mb-4">
+      <Link to="/compradores" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4">
         <ArrowLeft className="w-4 h-4 mr-1" /> Volver a Compradores
       </Link>
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-900">{buyer.name}</h1>
-        {buyer.location && <p className="text-sm text-slate-500 mt-1">{buyer.location}</p>}
-        {buyer.notes && <p className="text-sm text-slate-400 mt-1">{buyer.notes}</p>}
+        <h1 className="text-2xl font-bold text-foreground">{buyer.name}</h1>
+        {buyer.location && <p className="text-sm text-muted-foreground mt-1">{buyer.location}</p>}
+        {buyer.notes && <p className="text-sm text-muted-foreground/70 mt-1">{buyer.notes}</p>}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
         <Card className="p-4">
-          <p className="text-sm text-slate-500">Total Entregado</p>
-          <p className="text-xl font-bold text-slate-900 mt-1">{formatTons(totalDeliveredTons)}</p>
+          <p className="text-sm text-muted-foreground">Total Entregado</p>
+          <p className="text-xl font-bold text-foreground mt-1">{formatTons(totalDeliveredTons)}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-slate-500">Ventas (Debe)</p>
-          <p className="text-xl font-bold text-slate-900 mt-1">{formatUsd(totalCharges)}</p>
+          <p className="text-sm text-muted-foreground">Ventas (Debe)</p>
+          <p className="text-xl font-bold text-foreground mt-1">{formatUsd(totalCharges)}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-slate-500">Pagos (Haber)</p>
-          <p className="text-xl font-bold text-slate-900 mt-1">{formatUsd(totalPayments)}</p>
+          <p className="text-sm text-muted-foreground">Pagos (Haber)</p>
+          <p className="text-xl font-bold text-foreground mt-1">{formatUsd(totalPayments)}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-slate-500">Saldo</p>
+          <p className="text-sm text-muted-foreground">Saldo</p>
           <p
             className={`text-xl font-bold mt-1 ${
-              balance > 0.01 ? "text-emerald-600" : balance < -0.01 ? "text-rose-600" : "text-slate-400"
+              balance > 0.01 ? "text-haber" : balance < -0.01 ? "text-debe" : "text-muted-foreground/70"
             }`}
           >
             {formatUsd(balance)}
@@ -173,7 +173,7 @@ export default function BuyerDetail() {
         </div>
       )}
 
-      <p className="text-xs text-slate-400 mb-2">
+      <p className="text-xs text-muted-foreground/70 mb-2">
         Las compras, egresos y ventas directas se cargan desde sus respectivas pantallas. Acá solo se gestionan los pagos.
       </p>
 

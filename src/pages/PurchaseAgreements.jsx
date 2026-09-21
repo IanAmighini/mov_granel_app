@@ -26,7 +26,7 @@ export default function PurchaseAgreements() {
   const [editingItem, setEditingItem] = useState(null);
   const [activeTab, setActiveTab] = useState("purchase_crude");
 
-  if (loading || !data) return <p className="text-slate-500">Cargando...</p>;
+  if (loading || !data) return <p className="text-muted-foreground">Cargando...</p>;
 
   const buyerRefineries = data.buyers;
 
@@ -126,7 +126,7 @@ export default function PurchaseAgreements() {
       (data.purchaseAgreements || []).filter((a) => (a.agreement_type || "purchase_crude") === type)
     );
     return (
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden overflow-x-auto">
+      <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -144,7 +144,7 @@ export default function PurchaseAgreements() {
           <TableBody>
             {agreements.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-slate-400 py-8">
+                <TableCell colSpan={9} className="text-center text-muted-foreground/70 py-8">
                   No hay acuerdos cargados
                 </TableCell>
               </TableRow>
@@ -153,35 +153,35 @@ export default function PurchaseAgreements() {
                 const progress = calcAgreementProgress(a);
                 return (
                   <TableRow key={a.id}>
-                    <TableCell className="text-slate-500">{formatDate(a.date)}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatDate(a.date)}</TableCell>
                     <TableCell className="font-medium">
                       {getAgreementPartyName(a, data.suppliers, data.buyers)}
                     </TableCell>
                     <TableCell>
-                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground">
                         {oilTypeLabels[a.oil_type]}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">{a.price_per_ton}</TableCell>
-                    <TableCell className="text-slate-500">{currencyLabels[a.price_currency]}</TableCell>
+                    <TableCell className="text-muted-foreground">{currencyLabels[a.price_currency]}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden min-w-[80px]">
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden min-w-[80px]">
                           <div
-                            className="h-full bg-emerald-500 rounded-full"
+                            className="h-full bg-primary rounded-full"
                             style={{ width: `${progress.percent}%` }}
                           />
                         </div>
-                        <span className="text-xs text-slate-500 whitespace-nowrap">
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
                           {progress.delivered}/{progress.total}
                         </span>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right font-semibold text-amber-600">{progress.pending}</TableCell>
+                    <TableCell className="text-right font-semibold text-aviso">{progress.pending}</TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${
-                          a.status === "open" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"
+                          a.status === "open" ? "bg-haber/10 text-haber" : "bg-muted text-muted-foreground"
                         }`}
                       >
                         {a.status === "open" ? "Vigente" : "Cerrado"}

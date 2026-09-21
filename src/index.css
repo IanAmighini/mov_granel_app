@@ -4,78 +4,107 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    /* ---------------------------------------------------------------
+       Paleta: grafito cálido y dorado.
+
+       Neutros cálidos en vez de grises fríos, y el dorado como única
+       señal de marca — el resto se mantiene apagado para que lo único
+       con color fuerte sean los números. La barra lateral va oscura en
+       los dos modos a propósito: es el marco, no el contenido.
+
+       Se eligió entre tres (grafito, azul petróleo y bronce). Cambiarla
+       es tocar estas variables: ninguna pantalla tiene colores propios.
+       --------------------------------------------------------------- */
+    --background: 45 30% 98%;
+    --foreground: 30 12% 14%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 30 12% 14%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 0 0% 9%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
-    --destructive: 0 84.2% 60.2%;
+    --popover-foreground: 30 12% 14%;
+    --primary: 28 10% 18%;
+    --primary-foreground: 45 40% 97%;
+    --secondary: 40 20% 94%;
+    --secondary-foreground: 28 12% 18%;
+    --muted: 45 22% 95%;
+    --muted-foreground: 35 9% 42%;
+    --accent: 40 45% 92%;
+    --accent-foreground: 28 12% 18%;
+    --destructive: 0 72% 45%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
-    --chart-1: 12 76% 61%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
+    --border: 40 16% 88%;
+    --input: 40 16% 88%;
+    --ring: 38 70% 45%;
+
+    /* Plata. Se usan tanto que merecen nombre propio, y en oscuro
+       necesitan otro tono para seguir leyéndose. */
+    --debe: 0 68% 45%;
+    --haber: 152 52% 30%;
+    --aviso: 32 78% 38%;
+
+    --chart-1: 43 74% 49%;
+    --chart-2: 92 30% 34%;
+    --chart-3: 25 60% 45%;
+    --chart-4: 152 40% 38%;
+    --chart-5: 15 65% 52%;
     --radius: 0.5rem;
     --font-heading: ui-sans-serif, system-ui, sans-serif;
     --font-body: ui-sans-serif, system-ui, sans-serif;
     --font-display: ui-sans-serif, system-ui, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --sidebar-background: 28 10% 10%;
+    --sidebar-foreground: 40 12% 76%;
+    --sidebar-primary: 40 80% 55%;
+    --sidebar-primary-foreground: 28 20% 10%;
+    --sidebar-accent: 28 8% 17%;
+    --sidebar-accent-foreground: 40 25% 95%;
+    --sidebar-border: 28 8% 19%;
+    --sidebar-ring: 40 80% 55%;
   }
 
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --chart-1: 220 70% 50%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --background: 30 9% 9%;
+      --foreground: 45 18% 91%;
+      --card: 30 9% 12%;
+      --card-foreground: 45 18% 91%;
+      --popover: 30 9% 12%;
+      --popover-foreground: 45 18% 91%;
+      --primary: 40 78% 56%;
+      --primary-foreground: 28 20% 10%;
+      --secondary: 30 8% 17%;
+      --secondary-foreground: 45 18% 91%;
+      --muted: 30 8% 16%;
+      --muted-foreground: 40 10% 62%;
+      --accent: 28 8% 19%;
+      --accent-foreground: 40 78% 60%;
+      --destructive: 0 62% 47%;
+      --destructive-foreground: 0 0% 98%;
+      --border: 30 8% 21%;
+      --input: 30 8% 21%;
+      --ring: 40 78% 56%;
+
+    /* Más claros que en modo claro: sobre fondo oscuro, los tonos
+       saturados y oscuros no se distinguen. */
+      --debe: 0 76% 66%;
+      --haber: 152 48% 55%;
+      --aviso: 40 82% 62%;
+
+      --chart-1: 43 74% 58%;
+      --chart-2: 92 32% 52%;
+      --chart-3: 25 65% 58%;
+      --chart-4: 152 42% 52%;
+      --chart-5: 15 70% 62%;
+
+      --sidebar-background: 28 10% 7%;
+      --sidebar-foreground: 45 16% 76%;
+      --sidebar-primary: 40 78% 56%;
+      --sidebar-primary-foreground: 96 30% 8%;
+      --sidebar-accent: 28 8% 14%;
+      --sidebar-accent-foreground: 45 28% 94%;
+      --sidebar-border: 28 8% 16%;
+      --sidebar-ring: 43 72% 55%;
+    }
   }
 }
 

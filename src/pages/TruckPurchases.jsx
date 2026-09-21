@@ -40,7 +40,7 @@ export default function TruckPurchases() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
-  if (loading || !data) return <p className="text-slate-500">Cargando...</p>;
+  if (loading || !data) return <p className="text-muted-foreground">Cargando...</p>;
 
   const context = {
     suppliers: data.suppliers,
@@ -285,7 +285,7 @@ export default function TruckPurchases() {
         }
       />
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden overflow-x-auto">
+      <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -305,7 +305,7 @@ export default function TruckPurchases() {
           <TableBody>
             {data.truckPurchases.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={11} className="text-center text-slate-400 py-8">
+                <TableCell colSpan={11} className="text-center text-muted-foreground/70 py-8">
                   No hay compras registradas
                 </TableCell>
               </TableRow>
@@ -317,35 +317,35 @@ export default function TruckPurchases() {
                 const agreement = data.purchaseAgreements?.find((a) => a.id === p.purchase_agreement_id);
                 return (
                   <TableRow key={p.id}>
-                    <TableCell className="text-slate-500">{formatDate(p.date)}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatDate(p.date)}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={`/proveedores/${p.supplier_id}`} className="hover:text-emerald-600">
+                      <Link to={`/proveedores/${p.supplier_id}`} className="hover:text-primary">
                         {supplier?.name || "—"}
                       </Link>
                       {agreement && (
-                        <span className="block text-xs text-emerald-600 font-medium mt-0.5">
+                        <span className="block text-xs text-haber font-medium mt-0.5">
                           Acuerdo {agreement.price_per_ton} {currencyLabels[agreement.price_currency]}
                         </span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground">
                         {oilTypeLabels[p.oil_type]}
                       </span>
                     </TableCell>
                     <TableCell className="text-right">{formatTons(p.tons)}</TableCell>
-                    <TableCell className="text-right text-slate-500">{p.discount_percent ? `${p.discount_percent}%` : "—"}</TableCell>
+                    <TableCell className="text-right text-muted-foreground">{p.discount_percent ? `${p.discount_percent}%` : "—"}</TableCell>
                     <TableCell className="text-right font-medium">{formatTons(calcNetTons(p))}</TableCell>
                     <TableCell className="text-right">{p.price_per_ton}</TableCell>
-                    <TableCell className="text-slate-500">{currencyLabels[p.price_currency]}</TableCell>
-                    <TableCell className="text-slate-500">
+                    <TableCell className="text-muted-foreground">{currencyLabels[p.price_currency]}</TableCell>
+                    <TableCell className="text-muted-foreground">
                       {refinery ? (
-                        <Link to={`/refinerias/${p.refinery_id}`} className="hover:text-emerald-600">
+                        <Link to={`/refinerias/${p.refinery_id}`} className="hover:text-primary">
                           {refinery.name}
                         </Link>
                       ) : buyer ? (
-                        <Link to={`/compradores/${p.buyer_id}`} className="hover:text-emerald-600">
-                          {buyer.name} <span className="text-xs text-amber-600">(directo)</span>
+                        <Link to={`/compradores/${p.buyer_id}`} className="hover:text-primary">
+                          {buyer.name} <span className="text-xs text-aviso">(directo)</span>
                         </Link>
                       ) : (
                         "—"

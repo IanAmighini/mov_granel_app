@@ -16,7 +16,7 @@ export default function DirectSales() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
-  if (loading || !data) return <p className="text-slate-500">Cargando...</p>;
+  if (loading || !data) return <p className="text-muted-foreground">Cargando...</p>;
 
   const sales = [...(data.directSales || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -119,7 +119,7 @@ export default function DirectSales() {
         }
       />
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden overflow-x-auto">
+      <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -137,25 +137,25 @@ export default function DirectSales() {
           <TableBody>
             {sales.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center text-slate-400 py-8">
+                <TableCell colSpan={9} className="text-center text-muted-foreground/70 py-8">
                   No hay ventas directas cargadas
                 </TableCell>
               </TableRow>
             ) : (
               sales.map((s) => (
                 <TableRow key={s.id}>
-                  <TableCell className="text-slate-500">{formatDate(s.date)}</TableCell>
+                  <TableCell className="text-muted-foreground">{formatDate(s.date)}</TableCell>
                   <TableCell>{getRefineryName(s.origin_refinery_id)}</TableCell>
                   <TableCell className="font-medium">{getBuyerName(s.buyer_id)}</TableCell>
                   <TableCell>
-                    <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                    <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground">
                       {oilTypeLabels[s.oil_type]}
                     </span>
                   </TableCell>
                   <TableCell className="text-right">{formatTons(s.tons)}</TableCell>
                   <TableCell className="text-right">{s.price_per_ton}</TableCell>
-                  <TableCell className="text-slate-500">{currencyLabels[s.price_currency]}</TableCell>
-                  <TableCell className="text-slate-500">{s.ticket_number || "—"}</TableCell>
+                  <TableCell className="text-muted-foreground">{currencyLabels[s.price_currency]}</TableCell>
+                  <TableCell className="text-muted-foreground">{s.ticket_number || "—"}</TableCell>
                   <TableCell>
                     {isAdmin && (
                       <div className="flex items-center gap-1">

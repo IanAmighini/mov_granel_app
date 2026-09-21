@@ -31,7 +31,7 @@ export default function Dashboard() {
   const { data, loading } = useOilData();
 
   if (loading || !data) {
-    return <p className="text-slate-500">Cargando dashboard...</p>;
+    return <p className="text-muted-foreground">Cargando dashboard...</p>;
   }
 
   const { suppliers, refineries, truckPurchases, supplierPayments, refineryMovements, refineryPayments } = data;
@@ -143,14 +143,14 @@ export default function Dashboard() {
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-slate-900">Proveedores — Los que más debemos</h2>
+          <h2 className="text-lg font-semibold text-foreground">Proveedores — Los que más debemos</h2>
           <Link to="/proveedores">
             <Button variant="ghost" size="sm">
               Ver todos <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -163,23 +163,23 @@ export default function Dashboard() {
             <TableBody>
               {suppliersWeOwe.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-slate-400 py-6">
+                  <TableCell colSpan={4} className="text-center text-muted-foreground/70 py-6">
                     No hay saldos pendientes
                   </TableCell>
                 </TableRow>
               ) : (
                 suppliersWeOwe.map((s, idx) => (
                   <TableRow key={s.id}>
-                    <TableCell className="text-slate-400 font-medium">{idx + 1}</TableCell>
+                    <TableCell className="text-muted-foreground/70 font-medium">{idx + 1}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={`/proveedores/${s.id}`} className="hover:text-emerald-600">
+                      <Link to={`/proveedores/${s.id}`} className="hover:text-primary">
                         {s.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-slate-500 text-xs">
+                    <TableCell className="text-muted-foreground text-xs">
                       {accountCurrencyLabels[s.accountCurrency]}
                     </TableCell>
-                    <TableCell className="text-right font-semibold text-rose-600">
+                    <TableCell className="text-right font-semibold text-debe">
                       {formatUsd(s.balance)}
                     </TableCell>
                   </TableRow>
@@ -193,14 +193,14 @@ export default function Dashboard() {
       {suppliersOweUs.length > 0 && (
         <div className="mb-8">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-slate-900">Proveedores — Los que nos deben</h2>
+            <h2 className="text-lg font-semibold text-foreground">Proveedores — Los que nos deben</h2>
             <Link to="/proveedores">
               <Button variant="ghost" size="sm">
                 Ver todos <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
           </div>
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-xl border border-border overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -213,16 +213,16 @@ export default function Dashboard() {
               <TableBody>
                 {suppliersOweUs.map((s, idx) => (
                   <TableRow key={s.id}>
-                    <TableCell className="text-slate-400 font-medium">{idx + 1}</TableCell>
+                    <TableCell className="text-muted-foreground/70 font-medium">{idx + 1}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={`/proveedores/${s.id}`} className="hover:text-emerald-600">
+                      <Link to={`/proveedores/${s.id}`} className="hover:text-primary">
                         {s.name}
                       </Link>
                     </TableCell>
-                    <TableCell className="text-slate-500 text-xs">
+                    <TableCell className="text-muted-foreground text-xs">
                       {accountCurrencyLabels[s.accountCurrency]}
                     </TableCell>
-                    <TableCell className="text-right font-semibold text-emerald-600">
+                    <TableCell className="text-right font-semibold text-haber">
                       {formatUsd(Math.abs(s.balance))}
                     </TableCell>
                   </TableRow>
@@ -235,7 +235,7 @@ export default function Dashboard() {
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-slate-900">Acuerdos Vigentes</h2>
+          <h2 className="text-lg font-semibold text-foreground">Acuerdos Vigentes</h2>
           <Link to="/acuerdos">
             <Button variant="ghost" size="sm">
               Ver todos <ArrowRight className="w-4 h-4 ml-1" />
@@ -243,9 +243,9 @@ export default function Dashboard() {
           </Link>
         </div>
         {activeAgreements.length === 0 ? (
-          <p className="text-slate-400 text-center py-6">Sin acuerdos vigentes</p>
+          <p className="text-muted-foreground/70 text-center py-6">Sin acuerdos vigentes</p>
         ) : (
-          <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+          <div className="bg-card rounded-xl border border-border overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -266,12 +266,12 @@ export default function Dashboard() {
                         {getAgreementPartyName(a, suppliers, data.buyers)}
                       </TableCell>
                       <TableCell>
-                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground">
                           {agreementTypeLabels[a.agreement_type || "purchase_crude"]}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-aviso/10 text-aviso">
                           {oilTypeLabels[a.oil_type]}
                         </span>
                       </TableCell>
@@ -280,18 +280,18 @@ export default function Dashboard() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden min-w-[80px]">
+                          <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden min-w-[80px]">
                             <div
-                              className="h-full bg-emerald-500 rounded-full"
+                              className="h-full bg-primary rounded-full"
                               style={{ width: `${progress.percent}%` }}
                             />
                           </div>
-                          <span className="text-xs text-slate-500 whitespace-nowrap">
+                          <span className="text-xs text-muted-foreground whitespace-nowrap">
                             {progress.delivered}/{progress.total}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right font-semibold text-amber-600">
+                      <TableCell className="text-right font-semibold text-aviso">
                         {progress.pending}
                       </TableCell>
                     </TableRow>
@@ -305,7 +305,7 @@ export default function Dashboard() {
 
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-slate-900">Stock y Saldo por Refinería</h2>
+          <h2 className="text-lg font-semibold text-foreground">Stock y Saldo por Refinería</h2>
           <Link to="/refinerias">
             <Button variant="ghost" size="sm">
               Ver todas <ArrowRight className="w-4 h-4 ml-1" />
@@ -313,7 +313,7 @@ export default function Dashboard() {
           </Link>
         </div>
         {refineries.length === 0 ? (
-          <p className="text-slate-400 text-center py-6">Sin refinerías cargadas</p>
+          <p className="text-muted-foreground/70 text-center py-6">Sin refinerías cargadas</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {refineries.map((r) => {
@@ -337,7 +337,7 @@ export default function Dashboard() {
       </div>
             <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-slate-900">Saldo por Comprador</h2>
+          <h2 className="text-lg font-semibold text-foreground">Saldo por Comprador</h2>
           <Link to="/compradores">
             <Button variant="ghost" size="sm">
               Ver todos <ArrowRight className="w-4 h-4 ml-1" />
@@ -345,21 +345,21 @@ export default function Dashboard() {
           </Link>
         </div>
         {buyerStats.length === 0 ? (
-          <p className="text-slate-400 text-center py-6">Sin compradores cargados</p>
+          <p className="text-muted-foreground/70 text-center py-6">Sin compradores cargados</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {buyerStats.map((b) => (
               <Card key={b.id} className="p-4">
-                <p className="font-semibold text-slate-900 mb-3">{b.name}</p>
+                <p className="font-semibold text-foreground mb-3">{b.name}</p>
                 <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="text-slate-500">Total Entregado</span>
+                  <span className="text-muted-foreground">Total Entregado</span>
                   <span className="font-medium">{formatTons(b.totalDeliveredTons)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-slate-500">Saldo</span>
+                  <span className="text-muted-foreground">Saldo</span>
                   <span
                     className={`font-semibold ${
-                      b.balance > 0.01 ? "text-emerald-600" : b.balance < -0.01 ? "text-rose-600" : "text-slate-400"
+                      b.balance > 0.01 ? "text-haber" : b.balance < -0.01 ? "text-debe" : "text-muted-foreground/70"
                     }`}
                   >
                     {formatUsd(b.balance)}
@@ -373,14 +373,14 @@ export default function Dashboard() {
       
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-slate-900">Compras Recientes</h2>
+          <h2 className="text-lg font-semibold text-foreground">Compras Recientes</h2>
           <Link to="/compras">
             <Button variant="ghost" size="sm">
               Ver todas <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
         </div>
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -394,7 +394,7 @@ export default function Dashboard() {
             <TableBody>
               {recentPurchases.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-slate-400 py-6">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground/70 py-6">
                     Sin compras registradas
                   </TableCell>
                 </TableRow>
@@ -403,10 +403,10 @@ export default function Dashboard() {
                   const supplier = suppliers.find((s) => s.id === p.supplier_id);
                   return (
                     <TableRow key={p.id}>
-                      <TableCell className="text-slate-500">{formatDate(p.date)}</TableCell>
+                      <TableCell className="text-muted-foreground">{formatDate(p.date)}</TableCell>
                       <TableCell className="font-medium">{supplier?.name || "—"}</TableCell>
                       <TableCell>
-                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground">
                           {oilTypeLabels[p.oil_type] || p.oil_type}
                         </span>
                       </TableCell>

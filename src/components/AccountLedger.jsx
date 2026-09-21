@@ -29,17 +29,17 @@ function vacia(col, row) {
 function tono(col, row) {
   const v = Number(row[col.key]) || 0;
   switch (col.tone) {
-    case "debit":  return v ? "text-rose-600" : "";
-    case "credit": return v ? "text-emerald-600" : "";
+    case "debit":  return v ? "text-debe" : "";
+    case "credit": return v ? "text-haber" : "";
     case "signed": // un ajuste: verde si suma, rojo si resta
-      return v > 0 ? "text-emerald-600" : v < 0 ? "text-rose-600" : "";
+      return v > 0 ? "text-haber" : v < 0 ? "text-debe" : "";
     case "balance": // saldo de cuenta: positivo es deuda
       return `font-semibold ${
-        v > 0.01 ? "text-rose-600" : v < -0.01 ? "text-emerald-600" : "text-slate-400"}`;
+        v > 0.01 ? "text-debe" : v < -0.01 ? "text-haber" : "text-muted-foreground/70"}`;
     case "neutral": // stock acumulado: sólo negativo es raro
-      return `font-semibold ${v < -0.001 ? "text-rose-600" : "text-slate-900"}`;
+      return `font-semibold ${v < -0.001 ? "text-debe" : "text-foreground"}`;
     default:
-      return col.key === "comments" ? "text-slate-500" : "";
+      return col.key === "comments" ? "text-muted-foreground" : "";
   }
 }
 
@@ -71,8 +71,8 @@ export default function AccountLedger({ ledger, heading = "Cuenta Corriente", on
     <div>
       <div className="flex flex-wrap items-end justify-between gap-3 mb-3">
         <div>
-          <h2 className="text-sm font-semibold text-slate-700">{heading}</h2>
-          <p className="text-xs text-slate-400 italic">
+          <h2 className="text-sm font-semibold text-foreground">{heading}</h2>
+          <p className="text-xs text-muted-foreground/70 italic">
             {legend} · {unitLabel}
           </p>
         </div>
@@ -86,28 +86,28 @@ export default function AccountLedger({ ledger, heading = "Cuenta Corriente", on
           encabezados y los totales quedan fijos, igual que los panes
           congelados del Excel. Sin un alto definido, `sticky` no tiene
           contra qué fijarse y el saldo se va de pantalla al scrollear. */}
-      <div className="bg-white rounded-xl border border-slate-200 max-h-[70vh] overflow-auto">
+      <div className="bg-card rounded-xl border border-border max-h-[70vh] overflow-auto">
         <Table>
           <TableHeader>
             <TableRow>
               {columns.map((c) => (
                 <TableHead
                   key={c.key}
-                  className={`sticky top-0 z-20 bg-slate-50 ${
+                  className={`sticky top-0 z-20 bg-muted ${
                     c.align === "right" ? "text-right" : ""
                   }`}
                 >
                   {c.label}
                 </TableHead>
               ))}
-              {acciones && <TableHead className="sticky top-0 z-20 bg-slate-50 w-20" />}
+              {acciones && <TableHead className="sticky top-0 z-20 bg-muted w-20" />}
             </TableRow>
             {/* Totales arriba, como en las planillas */}
             <TableRow>
               {columns.map((c) => (
                 <TableCell
                   key={c.key}
-                  className={`sticky top-10 z-10 bg-slate-50 font-bold border-b-2 ${
+                  className={`sticky top-10 z-10 bg-muted font-bold border-b-2 ${
                     c.align === "right" ? "text-right" : ""
                   }`}
                 >
@@ -118,13 +118,13 @@ export default function AccountLedger({ ledger, heading = "Cuenta Corriente", on
                       : formatUsd(totals[c.key])}
                 </TableCell>
               ))}
-              {acciones && <TableCell className="sticky top-10 z-10 bg-slate-50 border-b-2" />}
+              {acciones && <TableCell className="sticky top-10 z-10 bg-muted border-b-2" />}
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length + (acciones ? 1 : 0)} className="text-center text-slate-400 py-8">
+                <TableCell colSpan={columns.length + (acciones ? 1 : 0)} className="text-center text-muted-foreground/70 py-8">
                   Sin movimientos
                 </TableCell>
               </TableRow>
@@ -148,13 +148,13 @@ export default function AccountLedger({ ledger, heading = "Cuenta Corriente", on
                       <div className="flex items-center gap-1">
                         {onEdit && (
                           <Button variant="ghost" size="sm" onClick={() => onEdit(r)}
-                            className="text-slate-400 hover:text-slate-900 hover:bg-slate-100">
+                            className="text-muted-foreground/70 hover:text-foreground hover:bg-muted">
                             <Pencil className="w-4 h-4" />
                           </Button>
                         )}
                         {onDelete && (
                           <Button variant="ghost" size="sm" onClick={() => onDelete(r)}
-                            className="text-slate-400 hover:text-rose-600 hover:bg-rose-50">
+                            className="text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10">
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         )}

@@ -86,9 +86,9 @@ export default function Refineries() {
       />
 
       {loading || !data ? (
-        <p className="text-slate-500">Cargando...</p>
+        <p className="text-muted-foreground">Cargando...</p>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden overflow-x-auto">
+        <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -102,7 +102,7 @@ export default function Refineries() {
             <TableBody>
               {data.refineries.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-slate-400 py-8">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground/70 py-8">
                     No hay refinerías cargadas
                   </TableCell>
                 </TableRow>
@@ -116,15 +116,15 @@ export default function Refineries() {
                   return (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">{r.name}</TableCell>
-                      <TableCell className="text-slate-500">
-                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                      <TableCell className="text-muted-foreground">
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground">
                           {pricingTypeLabels[r.pricing_type] || r.pricing_type}
                         </span>
                       </TableCell>
                       <TableCell className="text-right font-semibold">{formatTons(stock.total.stock)}</TableCell>
                       <TableCell
                         className={`text-right font-semibold ${
-                          balance > 0.01 ? "text-rose-600" : balance < -0.01 ? "text-emerald-600" : "text-slate-400"
+                          balance > 0.01 ? "text-debe" : balance < -0.01 ? "text-haber" : "text-muted-foreground/70"
                         }`}
                       >
                         {formatUsd(balance)}

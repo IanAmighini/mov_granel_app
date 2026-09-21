@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-    darkMode: ["class"],
+    // Sigue al navegador: no hay interruptor en la app.
+    darkMode: "media",
     content: ["./index.html", "./src/**/*.{ts,tsx,js,jsx}"],
   theme: {
   	extend: {
@@ -10,6 +11,13 @@ module.exports = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
+  			/* Colores con significado contable: el rojo de lo que se debe, el
+  			   verde de lo que se pagó y el ámbar de lo que hay que mirar.
+  			   Como tokens y no como `rose-600` sueltos, para que cambien
+  			   solos en modo oscuro. */
+  			debe: 'hsl(var(--debe))',
+  			haber: 'hsl(var(--haber))',
+  			aviso: 'hsl(var(--aviso))',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

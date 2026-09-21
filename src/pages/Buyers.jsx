@@ -75,9 +75,9 @@ export default function Buyers() {
       />
 
       {loading || !data ? (
-        <p className="text-slate-500">Cargando...</p>
+        <p className="text-muted-foreground">Cargando...</p>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden overflow-x-auto">
+        <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -90,7 +90,7 @@ export default function Buyers() {
             <TableBody>
               {(data.buyers || []).length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center text-slate-400 py-8">
+                  <TableCell colSpan={4} className="text-center text-muted-foreground/70 py-8">
                     No hay compradores cargados
                   </TableCell>
                 </TableRow>
@@ -113,7 +113,7 @@ export default function Buyers() {
                       <TableCell className="text-right font-semibold">{formatTons(totalDeliveredTons)}</TableCell>
                       <TableCell
                         className={`text-right font-semibold ${
-                          balance > 0.01 ? "text-emerald-600" : balance < -0.01 ? "text-rose-600" : "text-slate-400"
+                          balance > 0.01 ? "text-haber" : balance < -0.01 ? "text-debe" : "text-muted-foreground/70"
                         }`}
                       >
                         {formatUsd(balance)}

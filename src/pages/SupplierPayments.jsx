@@ -24,7 +24,7 @@ export default function SupplierPayments() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
-  if (loading || !data) return <p className="text-slate-500">Cargando...</p>;
+  if (loading || !data) return <p className="text-muted-foreground">Cargando...</p>;
 
   const fields = [
     { name: "date", label: "Fecha", type: "date", required: true, defaultValue: todayStr() },
@@ -108,7 +108,7 @@ export default function SupplierPayments() {
         }
       />
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden overflow-x-auto">
+      <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -125,7 +125,7 @@ export default function SupplierPayments() {
           <TableBody>
             {data.supplierPayments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={8} className="text-center text-slate-400 py-8">
+                <TableCell colSpan={8} className="text-center text-muted-foreground/70 py-8">
                   No hay pagos registrados
                 </TableCell>
               </TableRow>
@@ -137,33 +137,33 @@ export default function SupplierPayments() {
                   : convertToUsdDivisa(p.amount, p.currency, p.usd_divisa_rate, p.usd_blue_rate);
                 return (
                   <TableRow key={p.id}>
-                    <TableCell className="text-slate-500">{formatDate(p.date)}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatDate(p.date)}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={`/proveedores/${p.supplier_id}`} className="hover:text-emerald-600">
+                      <Link to={`/proveedores/${p.supplier_id}`} className="hover:text-primary">
                         {supplier?.name || "—"}
                       </Link>
                     </TableCell>
                     <TableCell className="text-right">
                       {p.currency === "ars" ? formatArs(p.amount) : formatUsd(p.amount)}
                     </TableCell>
-                    <TableCell className="text-slate-500">
+                    <TableCell className="text-muted-foreground">
                       {p.is_initial_balance ? "USD Divisa" : currencyLabels[p.currency]}
                     </TableCell>
-                    <TableCell className={`text-right font-semibold ${p.is_initial_balance ? "text-amber-600" : "text-emerald-600"}`}>
+                    <TableCell className={`text-right font-semibold ${p.is_initial_balance ? "text-aviso" : "text-haber"}`}>
                       {formatUsd(converted)}
                     </TableCell>
                     <TableCell>
                       {p.is_initial_balance ? (
-                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-aviso/10 text-aviso">
                           Saldo Inicial
                         </span>
                       ) : (
-                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-haber/10 text-haber">
                           Pago
                         </span>
                       )}
                     </TableCell>
-                    <TableCell className="text-slate-400 max-w-[200px] truncate">{p.notes || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground/70 max-w-[200px] truncate">{p.notes || "—"}</TableCell>
                     <TableCell>
                       {isAdmin && (
                         <div className="flex items-center gap-1">

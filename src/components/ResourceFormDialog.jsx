@@ -150,7 +150,7 @@ export default function ResourceFormDialog({
                     {f.checkboxLabel || f.label}
                   </Label>
                   {(dynamicHintText || f.hint) && (
-                    <p className="text-xs text-slate-400">{dynamicHintText || f.hint}</p>
+                    <p className="text-xs text-muted-foreground/70">{dynamicHintText || f.hint}</p>
                   )}
                 </div>
               </div>
@@ -158,10 +158,10 @@ export default function ResourceFormDialog({
               <div key={f.name} className="space-y-1.5">
                 <Label>
                   {f.label}
-                  {isRequired(f) && <span className="text-rose-500"> *</span>}
+                  {isRequired(f) && <span className="text-destructive"> *</span>}
                 </Label>
                 {dynamicHintText && (
-                  <p className="text-xs font-medium text-emerald-600 bg-emerald-50 rounded-md px-2 py-1">
+                  <p className="text-xs font-medium text-haber bg-haber/10 rounded-md px-2 py-1">
                     {dynamicHintText}
                   </p>
                 )}
@@ -227,7 +227,7 @@ export default function ResourceFormDialog({
                     </>
                   );
                 })()}
-                {!dynamicHintText && f.hint && <p className="text-xs text-slate-400">{f.hint}</p>}
+                {!dynamicHintText && f.hint && <p className="text-xs text-muted-foreground/70">{f.hint}</p>}
               </div>
             );
           })}

@@ -12,7 +12,7 @@ export default function DeleteButton({ onDelete, label = "este registro" }) {
       variant="ghost"
       size="sm"
       onClick={handleDelete}
-      className="text-slate-400 hover:text-rose-600 hover:bg-rose-50"
+      className="text-muted-foreground/70 hover:text-destructive hover:bg-destructive/10"
     >
       <Trash2 className="w-4 h-4" />
     </Button>

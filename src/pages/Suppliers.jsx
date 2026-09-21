@@ -74,9 +74,9 @@ export default function Suppliers() {
       />
 
       {loading || !data ? (
-        <p className="text-slate-500">Cargando...</p>
+        <p className="text-muted-foreground">Cargando...</p>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="bg-card rounded-xl border border-border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -90,7 +90,7 @@ export default function Suppliers() {
             <TableBody>
               {data.suppliers.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center text-slate-400 py-8">
+                  <TableCell colSpan={5} className="text-center text-muted-foreground/70 py-8">
                     No hay proveedores cargados
                   </TableCell>
                 </TableRow>
@@ -103,19 +103,19 @@ export default function Suppliers() {
                   return (
                     <TableRow key={s.id}>
                       <TableCell className="font-medium">
-                        <Link to={`/proveedores/${s.id}`} className="hover:text-emerald-600">
+                        <Link to={`/proveedores/${s.id}`} className="hover:text-primary">
                           {s.name}
                         </Link>
                       </TableCell>
-                      <TableCell className="text-slate-500">
-                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                      <TableCell className="text-muted-foreground">
+                        <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground">
                           {accountCurrencyLabels[accountCurrency]}
                         </span>
                       </TableCell>
-                      <TableCell className="text-slate-500">{s.phone || "—"}</TableCell>
+                      <TableCell className="text-muted-foreground">{s.phone || "—"}</TableCell>
                       <TableCell
                         className={`text-right font-semibold ${
-                          balance > 0.01 ? "text-rose-600" : balance < -0.01 ? "text-emerald-600" : "text-slate-400"
+                          balance > 0.01 ? "text-debe" : balance < -0.01 ? "text-haber" : "text-muted-foreground/70"
                         }`}
                       >
                         {formatUsd(balance)}

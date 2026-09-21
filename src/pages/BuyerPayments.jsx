@@ -17,7 +17,7 @@ export default function BuyerPayments() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
-  if (loading || !data) return <p className="text-slate-500">Cargando...</p>;
+  if (loading || !data) return <p className="text-muted-foreground">Cargando...</p>;
 
   const payments = [...(data.buyerPayments || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -105,7 +105,7 @@ export default function BuyerPayments() {
         }
       />
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden overflow-x-auto">
+      <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -120,16 +120,16 @@ export default function BuyerPayments() {
           <TableBody>
             {payments.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={6} className="text-center text-slate-400 py-8">
+                <TableCell colSpan={6} className="text-center text-muted-foreground/70 py-8">
                   No hay pagos registrados
                 </TableCell>
               </TableRow>
             ) : (
               payments.map((p) => (
                 <TableRow key={p.id}>
-                  <TableCell className="text-slate-500">{formatDate(p.date)}</TableCell>
+                  <TableCell className="text-muted-foreground">{formatDate(p.date)}</TableCell>
                   <TableCell className="font-medium">
-                    <Link to={`/compradores/${p.buyer_id}`} className="hover:text-emerald-600">
+                    <Link to={`/compradores/${p.buyer_id}`} className="hover:text-primary">
                       {getBuyerName(p.buyer_id)}
                     </Link>
                   </TableCell>
@@ -140,16 +140,16 @@ export default function BuyerPayments() {
                         ? formatArs(p.amount)
                         : formatUsd(p.amount)}
                   </TableCell>
-                  <TableCell className="text-slate-500">
+                  <TableCell className="text-muted-foreground">
                     {p.is_initial_balance ? "USD Divisa" : currencyLabels[p.currency]}
                   </TableCell>
                   <TableCell>
                     {p.is_initial_balance ? (
-                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-aviso/10 text-aviso">
                         Saldo Inicial
                       </span>
                     ) : (
-                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700">
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-haber/10 text-haber">
                         Pago
                       </span>
                     )}

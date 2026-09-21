@@ -26,7 +26,7 @@ export default function RefineryMovements() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
 
-  if (loading || !data) return <p className="text-slate-500">Cargando...</p>;
+  if (loading || !data) return <p className="text-muted-foreground">Cargando...</p>;
 
   const fields = [
     { name: "date", label: "Fecha", type: "date", required: true, defaultValue: todayStr() },
@@ -162,7 +162,7 @@ export default function RefineryMovements() {
         }
       />
 
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
@@ -178,7 +178,7 @@ export default function RefineryMovements() {
           <TableBody>
             {egressMovements.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center text-slate-400 py-8">
+                <TableCell colSpan={7} className="text-center text-muted-foreground/70 py-8">
                   No hay egresos registrados
                 </TableCell>
               </TableRow>
@@ -188,22 +188,22 @@ export default function RefineryMovements() {
                 const buyer = data.buyers.find((b) => b.id === m.destination);
                 return (
                   <TableRow key={m.id}>
-                    <TableCell className="text-slate-500">{formatDate(m.date)}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatDate(m.date)}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={`/refinerias/${m.refinery_id}`} className="hover:text-emerald-600">
+                      <Link to={`/refinerias/${m.refinery_id}`} className="hover:text-primary">
                         {refinery?.name || "—"}
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700">
+                      <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-aviso/10 text-aviso">
                         {oilTypeLabels[m.oil_type]}
                       </span>
                     </TableCell>
                     <TableCell className="text-right font-medium">{formatTons(m.tons)}</TableCell>
-                    <TableCell className="text-slate-500">{m.ticket_number || "—"}</TableCell>
-                    <TableCell className="text-slate-600">
+                    <TableCell className="text-muted-foreground">{m.ticket_number || "—"}</TableCell>
+                    <TableCell className="text-muted-foreground">
                       {buyer ? (
-                        <Link to={`/compradores/${m.destination}`} className="hover:text-emerald-600">
+                        <Link to={`/compradores/${m.destination}`} className="hover:text-primary">
                           {buyer.name}
                         </Link>
                       ) : (
