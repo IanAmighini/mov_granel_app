@@ -41,14 +41,23 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-sidebar text-sidebar-accent-foreground px-4 py-3 flex items-center justify-between">
+      {/* El botón va a la IZQUIERDA: a la derecha se superponía con la barra
+          de scroll del teléfono y costaba acertarle. Además el panel sale de
+          ese lado, así que el gesto acompaña.
+          Área de toque de 44px, que es el mínimo cómodo para un pulgar. */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 bg-sidebar text-sidebar-accent-foreground px-2 py-2 flex items-center gap-1">
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+          aria-expanded={mobileOpen}
+          className="flex h-11 w-11 items-center justify-center rounded-lg transition-colors hover:bg-sidebar-accent active:bg-sidebar-accent"
+        >
+          {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
         <div className="flex items-center gap-2">
           <Droplet className="w-5 h-5 text-sidebar-primary" />
           <span className="font-semibold">Aceitera</span>
         </div>
-        <button onClick={() => setMobileOpen(!mobileOpen)}>
-          {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
       </div>
 
       <aside

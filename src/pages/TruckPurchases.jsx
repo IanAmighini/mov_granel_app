@@ -73,7 +73,8 @@ export default function TruckPurchases() {
         { value: "girasol_ao", label: "Girasol AO" },
       ],
     },
-    { name: "tons", label: "Toneladas Brutas", type: "number", required: true, placeholder: "Ej: 30,14" },
+    { name: "tons", label: "Toneladas Descargadas", type: "number", required: true,
+      hint: "Lo que bajó del camión, antes del descuento.", placeholder: "Ej: 30,14" },
     {
       name: "discount_percent",
       label: "Descuento (%)",
@@ -292,7 +293,7 @@ export default function TruckPurchases() {
               <TableHead>Fecha</TableHead>
               <TableHead>Proveedor</TableHead>
               <TableHead>Tipo</TableHead>
-              <TableHead className="text-right">Bruto</TableHead>
+              <TableHead className="text-right">Descarga</TableHead>
               <TableHead className="text-right">Desc.</TableHead>
               <TableHead className="text-right">Neto</TableHead>
               <TableHead className="text-right">Precio/Tn</TableHead>

@@ -58,7 +58,8 @@ export default function SupplierDetail() {
         { value: "girasol_ao", label: "Girasol AO" },
       ],
     },
-    { name: "tons", label: "Toneladas Brutas", type: "number", required: true, placeholder: "Ej: 30,14" },
+    { name: "tons", label: "Toneladas Descargadas", type: "number", required: true,
+      hint: "Lo que bajó del camión, antes del descuento.", placeholder: "Ej: 30,14" },
     {
       name: "discount_percent",
       label: "Descuento (%)",

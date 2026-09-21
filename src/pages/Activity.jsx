@@ -33,7 +33,7 @@ const ACCIONES = {
 /** Campos con nombre entendible; el resto se muestra como viene. */
 const CAMPOS = {
   name: "Nombre", date: "Fecha", amount: "Monto", currency: "Moneda",
-  tons: "Toneladas", gross_tons: "Toneladas brutas", net_tons: "Toneladas netas",
+  tons: "Toneladas", gross_tons: "Toneladas descargadas", net_tons: "Toneladas netas",
   discount_percent: "Descuento %", price_per_ton: "Precio por tonelada",
   price_currency: "Moneda del precio", sale_price_per_ton: "Precio de venta",
   usd_divisa_rate: "Cotización divisa", usd_blue_rate: "Cotización blue",

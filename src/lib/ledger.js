@@ -190,7 +190,10 @@ export function supplierLedger(supplier, { purchases, payments, refineries, buye
         ...cotizaciones(p),
         price: precioDeCuenta(p, acct), tons: calcNetTons(p),
         route: rutaDeCompra(p, refineries, buyers),
-        comments: (p.notes || "").trim() || `Crudo ${oilTypeLabels[p.oil_type] || ""}`.trim(),
+        comments: [
+          (p.notes || "").trim() || `Crudo ${oilTypeLabels[p.oil_type] || ""}`.trim(),
+          notaDeDescuento(p),
+        ].filter(Boolean).join(" "),
         debit: calcTruckPurchaseAmount(p, acct),
       })
     ),
@@ -346,7 +349,10 @@ export function buyerLedger(buyer, { movements, truckPurchases, directSales, pay
         id: p.id, kind: "purchase", date: p.date,
         driver: p.driver, ticket: p.ticket_number,
         price: p.sale_price_per_ton, tons: calcNetTons(p),
-        comments: (p.notes || "").trim() || `Compra directa ${oilTypeLabels[p.oil_type] || ""}`.trim(),
+        comments: [
+          (p.notes || "").trim() || `Compra directa ${oilTypeLabels[p.oil_type] || ""}`.trim(),
+          notaDeDescuento(p),
+        ].filter(Boolean).join(" "),
         debit: calcNetTons(p) * (p.sale_price_per_ton || 0),
       })
     ),

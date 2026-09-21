@@ -26,6 +26,15 @@ import { create, getNumericDate } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
 
 const HORAS_DE_SESION = 8;
 
+// Freno al login. Cinco intentos fallidos en la ventana y la cuenta queda
+// bloqueada hasta que esos intentos salgan de ella.
+//
+// El bloqueo es por mail, no por IP: son dos usuarios conocidos y una IP
+// cambia sola. Tiene un costo — alguien que sepa el mail puede dejar afuera
+// al dueño 15 minutos — y por eso la ventana es corta y no crece.
+const MAX_INTENTOS = 5;
+const VENTANA_MINUTOS = 15;
+
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -52,6 +61,31 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
+    const desde = new Date(Date.now() - VENTANA_MINUTOS * 60_000).toISOString();
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? null;
+
+    const { data: fallidos } = await admin
+      .from("login_attempts")
+      .select("at")
+      .ilike("email", email)
+      .eq("ok", false)
+      .gte("at", desde)
+      .order("at", { ascending: true });
+
+    if ((fallidos?.length ?? 0) >= MAX_INTENTOS) {
+      // Cuánto falta para que el más viejo salga de la ventana.
+      const libre = new Date(fallidos![0].at).getTime() + VENTANA_MINUTOS * 60_000;
+      const minutos = Math.max(1, Math.ceil((libre - Date.now()) / 60_000));
+      return json({
+        success: false,
+        code: "BLOQUEADO",
+        error: `Demasiados intentos fallidos. Probá de nuevo en ${minutos} minuto${minutos === 1 ? "" : "s"}.`,
+      }, 429);
+    }
+
+    const registrar = (ok: boolean) =>
+      admin.from("login_attempts").insert({ email, ip, ok });
+
     const { data: user, error: dbError } = await admin
       .from("users")
       .select("id, email, name, role, password_hash, is_active")
@@ -67,18 +101,30 @@ Deno.serve(async (req) => {
                     code: "DB_ERROR" }, 500);
     }
 
-    // Mismo mensaje exista o no el usuario: si se distinguen, la pantalla de
-    // login sirve para averiguar qué direcciones están dadas de alta.
-    // `code` distingue el motivo para poder diagnosticar; el `error` que se
-    // muestra al usuario es siempre el mismo, así la pantalla de login no
-    // sirve para averiguar qué direcciones están dadas de alta.
+    // El mensaje es el mismo exista o no el usuario: si se distinguieran, la
+    // pantalla de login serviría para averiguar qué direcciones están dadas
+    // de alta. El `code` queda para poder diagnosticar.
     const GENERICO = "Email o contraseña incorrectos";
-    if (!user) return json({ success: false, error: GENERICO, code: "NO_USER" }, 401);
-    if (!user.is_active) return json({ success: false, error: GENERICO, code: "INACTIVE" }, 401);
-
+    if (!user) {
+      await registrar(false);
+      return json({ success: false, error: GENERICO, code: "NO_USER" }, 401);
+    }
+    if (!user.is_active) {
+      await registrar(false);
+      return json({ success: false, error: GENERICO, code: "INACTIVE" }, 401);
+    }
     if (!bcrypt.compareSync(password, user.password_hash)) {
+      await registrar(false);
       return json({ success: false, error: GENERICO, code: "BAD_PASSWORD" }, 401);
     }
+
+    // Entró bien: se borran los fallidos, así el contador arranca de cero, y
+    // queda registrado el ingreso. De paso se limpia lo viejo, que si no la
+    // tabla crece para siempre.
+    await admin.from("login_attempts").delete().ilike("email", email).eq("ok", false);
+    await registrar(true);
+    await admin.from("login_attempts")
+      .delete().lt("at", new Date(Date.now() - 30 * 86_400_000).toISOString());
 
     const jwtSecret = Deno.env.get("APP_JWT_SECRET");
     if (!jwtSecret) {
