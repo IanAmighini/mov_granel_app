@@ -29,6 +29,7 @@ import DirectSales from './pages/DirectSales';
 import Buyers from './pages/Buyers';
 import BuyerPayments from './pages/BuyerPayments.jsx';
 import BuyerDetail from './pages/BuyerDetail';
+import Activity from './pages/Activity';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth } = useAuth();
@@ -70,6 +71,7 @@ const AuthenticatedApp = () => {
           <Route path="/compradores" element={<Buyers />} />
           <Route path="/pagos-compradores" element={<BuyerPayments />} />
           <Route path="/compradores/:id" element={<BuyerDetail />} />
+          <Route path="/actividad" element={<Activity />} />
         </Route>
       </Route>
 

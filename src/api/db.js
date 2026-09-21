@@ -200,6 +200,23 @@ function makeEntity(entity) {
   };
 }
 
+/**
+ * El registro de auditoría.
+ *
+ * Sólo lectura: la base no le da permiso de escritura a nadie, lo único que
+ * escribe es el trigger. No usa makeEntity() porque no se pagina — el log
+ * crece sin techo y siempre se mira lo último.
+ */
+async function auditLog({ limit = 300, table, action, actor } = {}) {
+  let q = supabase.from("audit_log").select("*").order("at", { ascending: false }).limit(limit);
+  if (table) q = q.eq("table_name", table);
+  if (action) q = q.eq("action", action);
+  if (actor) q = q.eq("actor_email", actor);
+  const { data, error } = await q;
+  if (error) fail(error);
+  return data;
+}
+
 /** Todas las entidades de una, en paralelo. Reemplaza al "bulk" del script. */
 async function listMultiple(names) {
   const res = await Promise.all(names.map((n) => makeEntity(n).list()));
@@ -242,4 +259,5 @@ export const db = {
   entities: Object.fromEntries(Object.keys(TABLES).map((n) => [n, makeEntity(n)])),
   auth,
   listMultiple,
+  auditLog,
 };
