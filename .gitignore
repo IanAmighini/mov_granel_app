@@ -32,4 +32,7 @@ supabase/import.sql
 supabase/baseline.json
 supabase/check.sql
 supabase/expected_totals.json
+backup-*.json
+backup-*.sql
 supabase/verify_balances.sql
+supabase/.temp/
