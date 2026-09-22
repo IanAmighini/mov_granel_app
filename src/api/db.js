@@ -58,6 +58,23 @@ const TABLES = {
 
 const PAYMENTS = ["SupplierPayment", "RefineryPayment", "BuyerPayment"];
 
+/**
+ * Campos que existen sólo en el formulario y no son columnas.
+ *
+ * Con Google Sheets esto no molestaba: el script escribía únicamente las
+ * columnas que conocía e ignoraba el resto. Postgres rechaza el pedido entero
+ * si le mandan un campo que no existe, así que hay que sacarlos acá.
+ *
+ * - `is_direct_sale`: decide si el camión va a refinería o a comprador, y eso
+ *   ya queda expresado en cuál de los dos ids viaja.
+ * - `agreement_id`: el selector de "¿a qué acuerdo corresponde?". La pantalla
+ *   lo usa para elegir el acuerdo y después guarda su id en
+ *   `purchase_agreement_id`, que sí es columna.
+ */
+const SOLO_FORMULARIO = {
+  TruckPurchase: ["is_direct_sale", "agreement_id"],
+};
+
 // ------------------------------------------------------------- traducción
 
 /** Fila de la base -> forma que esperan las pantallas. */
@@ -117,16 +134,16 @@ function toDb(entity, data) {
     }
   }
 
-  if (entity === "TruckPurchase") {
+  if (entity === "TruckPurchase" && "is_direct_sale" in o) {
     // El destino es excluyente: o refinería o comprador, nunca los dos.
     // Hay que anular el otro explícitamente, porque al editar una compra que
     // cambia de tipo el formulario no manda el campo que dejó de mostrarse.
-    if ("is_direct_sale" in o) {
-      if (o.is_direct_sale) o.refinery_id = null;
-      else o.buyer_id = null;
-      delete o.is_direct_sale;
-    }
+    if (o.is_direct_sale) o.refinery_id = null;
+    else o.buyer_id = null;
   }
+
+  // Al final, cuando ya se leyó lo que había que leer de ellos.
+  for (const campo of SOLO_FORMULARIO[entity] || []) delete o[campo];
 
   // Los <select> vacíos mandan "", que Postgres no acepta en uuid ni en date.
   for (const k of Object.keys(o)) {
