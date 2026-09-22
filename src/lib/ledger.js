@@ -164,6 +164,20 @@ function filaDeAsiento(p, montoHaber) {
 }
 
 /**
+ * "(Descuento del 1,5%)", o nada si no hubo.
+ *
+ * Las toneladas de la fila son las netas, así que sin esto no hay forma de
+ * ver desde la planilla que se descontó peso ni cuánto. En las hojas que
+ * llevaba Ian a mano esto estaba escrito dentro del comentario.
+ */
+function notaDeDescuento(p) {
+  const d = Number(p.discount_percent) || 0;
+  if (!d) return "";
+  const n = new Intl.NumberFormat("es-AR", { maximumFractionDigits: 3 }).format(d);
+  return `(Descuento del ${n}%)`;
+}
+
+/**
  * Código corto del destino de un camión.
  *
  * En la cuenta de un proveedor el origen es el proveedor mismo, así que sólo
