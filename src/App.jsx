@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
+import NotFound from './pages/NotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -75,7 +75,7 @@ const AuthenticatedApp = () => {
         </Route>
       </Route>
 
-      <Route path="*" element={<PageNotFound />} />
+      <Route path="*" element={<NotFound />} />
     </Routes>
   );
 };

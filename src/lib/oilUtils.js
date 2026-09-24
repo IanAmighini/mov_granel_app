@@ -18,11 +18,6 @@ export const accountCurrencyLabels = {
   usd_billete: "USD Billete",
 };
 
-export const movementTypeLabels = {
-  crude_in: "Ingreso Crudo",
-  refined_out: "Egreso Refinado",
-};
-
 export const pricingTypeLabels = {
   none: "Sin Costo",
   ingress_per_ton: "Costo por Tn Ingresada",
