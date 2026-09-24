@@ -7,6 +7,7 @@ import {
   formatTons,
   oilTypeLabels,
   pricingTypeLabels,
+  rutaRefineria,
 } from "@/lib/oilUtils";
 
 export default function RefineryStockCard({ refinery, movements, payments, purchases, allMovements = [], allAgreements = [] }) {
@@ -41,7 +42,7 @@ export default function RefineryStockCard({ refinery, movements, payments, purch
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between mb-3">
-        <Link to={`/refinerias/${refinery.id}`} className="font-semibold text-foreground hover:text-primary">
+        <Link to={rutaRefineria(refinery)} className="font-semibold text-foreground hover:text-primary">
           {refinery.name}
         </Link>
         <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground">

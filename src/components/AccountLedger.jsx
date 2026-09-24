@@ -87,7 +87,7 @@ export default function AccountLedger({ ledger, heading = "Cuenta Corriente", on
           congelados del Excel. Sin un alto definido, `sticky` no tiene
           contra qué fijarse y el saldo se va de pantalla al scrollear. */}
       <div className="bg-card rounded-xl border border-border max-h-[70vh] overflow-auto">
-        <Table>
+        <Table className="whitespace-nowrap">
           <TableHeader>
             <TableRow>
               {columns.map((c) => (

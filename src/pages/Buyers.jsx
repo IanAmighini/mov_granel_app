@@ -1,13 +1,18 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Pencil, Eye } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ResourceFormDialog from "@/components/ResourceFormDialog";
 import DeleteButton from "@/components/DeleteButton";
 import PageHeader from "@/components/PageHeader";
 import { useOilData } from "@/hooks/useOilData";
-import { calcBuyerBalance, formatUsd, formatTons } from "@/lib/oilUtils";
+import {
+  calcBuyerBalance,
+  formatUsd,
+  formatTons,
+  rutaComprador,
+} from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -67,7 +72,7 @@ export default function Buyers() {
         description="Clientes a los que se les vende aceite refinado."
         action={
           isAdmin && (
-            <Button onClick={handleCreate}>
+            <Button className="w-full sm:w-auto" onClick={handleCreate}>
               <Plus className="w-4 h-4 mr-2" /> Nuevo Comprador
             </Button>
           )
@@ -78,7 +83,7 @@ export default function Buyers() {
         <p className="text-muted-foreground">Cargando...</p>
       ) : (
         <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
-          <Table>
+          <Table className="whitespace-nowrap">
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
@@ -109,7 +114,11 @@ export default function Buyers() {
                   );
                   return (
                     <TableRow key={b.id}>
-                      <TableCell className="font-medium">{b.name}</TableCell>
+                      <TableCell className="font-medium">
+                        <Link to={rutaComprador(b)} className="hover:text-primary">
+                          {b.name}
+                        </Link>
+                      </TableCell>
                       <TableCell className="text-right font-semibold">{formatTons(totalDeliveredTons)}</TableCell>
                       <TableCell
                         className={`text-right font-semibold ${
@@ -120,11 +129,6 @@ export default function Buyers() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Link to={`/compradores/${b.id}`}>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                          </Link>
                           {isAdmin && (
                             <>
                               <Button variant="ghost" size="sm" onClick={() => handleEdit(b)}>

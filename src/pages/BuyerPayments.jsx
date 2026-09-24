@@ -7,7 +7,14 @@ import ResourceFormDialog from "@/components/ResourceFormDialog";
 import DeleteButton from "@/components/DeleteButton";
 import PageHeader from "@/components/PageHeader";
 import { useOilData } from "@/hooks/useOilData";
-import { formatDate, formatUsd, formatArs, currencyLabels, todayStr } from "@/lib/oilUtils";
+import {
+  formatDate,
+  formatUsd,
+  formatArs,
+  currencyLabels,
+  todayStr,
+  rutaComprador,
+} from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -89,7 +96,8 @@ export default function BuyerPayments() {
     refetch();
   };
 
-  const getBuyerName = (buyerId) => data.buyers.find((b) => b.id === buyerId)?.name || "—";
+  const getBuyer = (buyerId) => data.buyers.find((b) => b.id === buyerId);
+  const getBuyerName = (buyerId) => getBuyer(buyerId)?.name || "—";
 
   return (
     <div>
@@ -98,7 +106,7 @@ export default function BuyerPayments() {
         description="Registro de pagos que nos hacen los compradores por el aceite entregado, y saldos iniciales."
         action={
           isAdmin && (
-            <Button onClick={handleCreate}>
+            <Button className="w-full sm:w-auto" onClick={handleCreate}>
               <Plus className="w-4 h-4 mr-2" /> Nuevo Pago
             </Button>
           )
@@ -106,7 +114,7 @@ export default function BuyerPayments() {
       />
 
       <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
-        <Table>
+        <Table className="whitespace-nowrap">
           <TableHeader>
             <TableRow>
               <TableHead>Fecha</TableHead>
@@ -129,7 +137,7 @@ export default function BuyerPayments() {
                 <TableRow key={p.id}>
                   <TableCell className="text-muted-foreground">{formatDate(p.date)}</TableCell>
                   <TableCell className="font-medium">
-                    <Link to={`/compradores/${p.buyer_id}`} className="hover:text-primary">
+                    <Link to={rutaComprador(getBuyer(p.buyer_id))} className="hover:text-primary">
                       {getBuyerName(p.buyer_id)}
                     </Link>
                   </TableCell>

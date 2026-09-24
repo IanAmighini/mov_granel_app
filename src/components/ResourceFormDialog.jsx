@@ -92,6 +92,25 @@ export default function ResourceFormDialog({
 
   const setField = (name, value) => setValues((prev) => ({ ...prev, [name]: value }));
 
+  /**
+   * Un select cuyas opciones dependen de otro campo puede quedar con un valor
+   * que ya no está en la lista: elegir un proveedor y después cambiar el tipo
+   * de acuerdo a "venta" deja el id del proveedor guardado mientras la lista
+   * muestra compradores. Al guardar eso viaja a la base y la rompe.
+   *
+   * Cuando el valor deja de ser una opción válida, se limpia.
+   */
+  useEffect(() => {
+    for (const f of fields) {
+      if (!f.dynamicOptions) continue;
+      const v = values[f.name];
+      if (!v) continue;
+      const opts = f.dynamicOptions(values, context) || [];
+      if (!opts.some((o) => o.value === v)) setField(f.name, "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values]);
+
   const isNumericType = (type) => type === "number" || type === "currency";
   const isRequired = (f) => (typeof f.required === "function" ? f.required(values, context) : !!f.required);
 

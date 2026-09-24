@@ -25,6 +25,8 @@ import {
   currencyLabels,
   agreementTypeLabels,
   calcAgreementProgress,
+  rutaComprador,
+  rutaProveedor,
 } from "@/lib/oilUtils";
 
 export default function Dashboard() {
@@ -142,16 +144,16 @@ export default function Dashboard() {
       </div>
 
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-foreground">Proveedores — Los que más debemos</h2>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 mb-3">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">Proveedores — Los que más debemos</h2>
           <Link to="/proveedores">
             <Button variant="ghost" size="sm">
               Ver todos <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
         </div>
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <Table>
+        <div className="bg-card rounded-xl border border-border overflow-x-auto">
+          <Table className="whitespace-nowrap">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-10">#</TableHead>
@@ -172,7 +174,7 @@ export default function Dashboard() {
                   <TableRow key={s.id}>
                     <TableCell className="text-muted-foreground/70 font-medium">{idx + 1}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={`/proveedores/${s.id}`} className="hover:text-primary">
+                      <Link to={rutaProveedor(s)} className="hover:text-primary">
                         {s.name}
                       </Link>
                     </TableCell>
@@ -192,16 +194,16 @@ export default function Dashboard() {
 
       {suppliersOweUs.length > 0 && (
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold text-foreground">Proveedores — Los que nos deben</h2>
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 mb-3">
+            <h2 className="text-base sm:text-lg font-semibold text-foreground">Proveedores — Los que nos deben</h2>
             <Link to="/proveedores">
               <Button variant="ghost" size="sm">
                 Ver todos <ArrowRight className="w-4 h-4 ml-1" />
               </Button>
             </Link>
           </div>
-          <div className="bg-card rounded-xl border border-border overflow-hidden">
-            <Table>
+          <div className="bg-card rounded-xl border border-border overflow-x-auto">
+            <Table className="whitespace-nowrap">
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-10">#</TableHead>
@@ -215,7 +217,7 @@ export default function Dashboard() {
                   <TableRow key={s.id}>
                     <TableCell className="text-muted-foreground/70 font-medium">{idx + 1}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={`/proveedores/${s.id}`} className="hover:text-primary">
+                      <Link to={rutaProveedor(s)} className="hover:text-primary">
                         {s.name}
                       </Link>
                     </TableCell>
@@ -234,8 +236,8 @@ export default function Dashboard() {
       )}
 
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-foreground">Acuerdos Vigentes</h2>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 mb-3">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">Acuerdos Vigentes</h2>
           <Link to="/acuerdos">
             <Button variant="ghost" size="sm">
               Ver todos <ArrowRight className="w-4 h-4 ml-1" />
@@ -245,8 +247,8 @@ export default function Dashboard() {
         {activeAgreements.length === 0 ? (
           <p className="text-muted-foreground/70 text-center py-6">Sin acuerdos vigentes</p>
         ) : (
-          <div className="bg-card rounded-xl border border-border overflow-hidden">
-            <Table>
+          <div className="bg-card rounded-xl border border-border overflow-x-auto">
+            <Table className="whitespace-nowrap">
               <TableHeader>
                 <TableRow>
                   <TableHead>Contraparte</TableHead>
@@ -304,8 +306,8 @@ export default function Dashboard() {
       </div>
 
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-foreground">Stock y Saldo por Refinería</h2>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 mb-3">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">Stock y Saldo por Refinería</h2>
           <Link to="/refinerias">
             <Button variant="ghost" size="sm">
               Ver todas <ArrowRight className="w-4 h-4 ml-1" />
@@ -336,8 +338,8 @@ export default function Dashboard() {
         )}
       </div>
             <div className="mb-8">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-foreground">Saldo por Comprador</h2>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 mb-3">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">Saldo por Comprador</h2>
           <Link to="/compradores">
             <Button variant="ghost" size="sm">
               Ver todos <ArrowRight className="w-4 h-4 ml-1" />
@@ -350,7 +352,12 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {buyerStats.map((b) => (
               <Card key={b.id} className="p-4">
-                <p className="font-semibold text-foreground mb-3">{b.name}</p>
+                <Link
+                  to={rutaComprador(b)}
+                  className="block font-semibold text-foreground mb-3 hover:text-primary"
+                >
+                  {b.name}
+                </Link>
                 <div className="flex items-center justify-between text-sm mb-1">
                   <span className="text-muted-foreground">Total Entregado</span>
                   <span className="font-medium">{formatTons(b.totalDeliveredTons)}</span>
@@ -372,16 +379,16 @@ export default function Dashboard() {
       </div>
       
       <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-semibold text-foreground">Compras Recientes</h2>
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 mb-3">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">Compras Recientes</h2>
           <Link to="/compras">
             <Button variant="ghost" size="sm">
               Ver todas <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </Link>
         </div>
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <Table>
+        <div className="bg-card rounded-xl border border-border overflow-x-auto">
+          <Table className="whitespace-nowrap">
             <TableHeader>
               <TableRow>
                 <TableHead>Fecha</TableHead>

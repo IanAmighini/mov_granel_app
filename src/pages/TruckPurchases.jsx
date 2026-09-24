@@ -20,6 +20,9 @@ import {
   incrementAgreement,
   decrementAgreement,
   driverSuggestions,
+  rutaComprador,
+  rutaProveedor,
+  rutaRefineria,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
@@ -279,7 +282,7 @@ export default function TruckPurchases() {
         description="Registro de compras de aceite crudo a granel. El ingreso a refinería es automático, salvo venta directa a un Comprador."
         action={
           isAdmin && (
-            <Button onClick={handleCreate}>
+            <Button className="w-full sm:w-auto" onClick={handleCreate}>
               <Plus className="w-4 h-4 mr-2" /> Nueva Compra
             </Button>
           )
@@ -287,7 +290,7 @@ export default function TruckPurchases() {
       />
 
       <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
-        <Table>
+        <Table className="whitespace-nowrap">
           <TableHeader>
             <TableRow>
               <TableHead>Fecha</TableHead>
@@ -320,7 +323,7 @@ export default function TruckPurchases() {
                   <TableRow key={p.id}>
                     <TableCell className="text-muted-foreground">{formatDate(p.date)}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={`/proveedores/${p.supplier_id}`} className="hover:text-primary">
+                      <Link to={rutaProveedor(supplier)} className="hover:text-primary">
                         {supplier?.name || "—"}
                       </Link>
                       {agreement && (
@@ -341,11 +344,11 @@ export default function TruckPurchases() {
                     <TableCell className="text-muted-foreground">{currencyLabels[p.price_currency]}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {refinery ? (
-                        <Link to={`/refinerias/${p.refinery_id}`} className="hover:text-primary">
+                        <Link to={rutaRefineria(refinery)} className="hover:text-primary">
                           {refinery.name}
                         </Link>
                       ) : buyer ? (
-                        <Link to={`/compradores/${p.buyer_id}`} className="hover:text-primary">
+                        <Link to={rutaComprador(buyer)} className="hover:text-primary">
                           {buyer.name} <span className="text-xs text-aviso">(directo)</span>
                         </Link>
                       ) : (

@@ -12,13 +12,14 @@ import {
   formatTons,
   todayStr,
   adjustmentFields,
+  findBySlugOrId,
 } from "@/lib/oilUtils";
 import { buyerLedger } from "@/lib/ledger";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
 
 export default function BuyerDetail() {
-  const { id } = useParams();
+  const { id: slug } = useParams();   // puede ser el nombre o un id viejo
   const { data, loading, refetch } = useOilData();
   const { isAdmin } = useAuth();
   const [paymentDialog, setPaymentDialog] = useState(false);
@@ -27,8 +28,11 @@ export default function BuyerDetail() {
 
   if (loading || !data) return <p className="text-muted-foreground">Cargando...</p>;
 
-  const buyer = (data.buyers || []).find((b) => b.id === id);
+  const buyer = findBySlugOrId((data.buyers || []), slug);
   if (!buyer) return <p className="text-muted-foreground">Comprador no encontrado</p>;
+
+  // El id real del registro: el resto de la pantalla lo usa para filtrar.
+  const id = buyer.id;
 
   const movements = data.refineryMovements.filter(
     (m) => m.destination === id && m.movement_type === "refined_out" && !m.is_initial_balance

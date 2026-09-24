@@ -58,7 +58,7 @@ export default function AuthLayout({ icon: Icon, title, subtitle, footer, childr
       {/* min-h-screen sólo en celular: sin la columna de la izquierda, el
           contenedor no estira y el formulario quedaba pegado arriba con un
           hueco abajo. En escritorio lo estira la grilla. */}
-      <main className="flex min-h-screen items-center justify-center px-4 py-12 lg:min-h-0">
+      <main className="flex min-h-screen items-center justify-center px-6 py-12 sm:px-10 lg:min-h-0 lg:px-12">
         <div className="w-full max-w-sm">
           {/* Marca compacta, sólo cuando no está la columna de la izquierda */}
           <div className="mb-8 flex items-center justify-center gap-2.5 lg:hidden">

@@ -13,13 +13,14 @@ import {
   todayStr,
   adjustmentFields,
   driverSuggestions,
+  findBySlugOrId,
 } from "@/lib/oilUtils";
 import { supplierLedger } from "@/lib/ledger";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
 
 export default function SupplierDetail() {
-  const { id } = useParams();
+  const { id: slug } = useParams();   // puede ser el nombre o un id viejo
   const { data, loading, refetch } = useOilData();
   const { isAdmin } = useAuth();
   const [purchaseDialog, setPurchaseDialog] = useState(false);
@@ -30,8 +31,11 @@ export default function SupplierDetail() {
 
   if (loading || !data) return <p className="text-muted-foreground">Cargando...</p>;
 
-  const supplier = data.suppliers.find((s) => s.id === id);
+  const supplier = findBySlugOrId(data.suppliers, slug);
   if (!supplier) return <p className="text-muted-foreground">Proveedor no encontrado</p>;
+
+  // El id real del registro: el resto de la pantalla lo usa para filtrar.
+  const id = supplier.id;
 
   const accountCurrency = supplier.account_currency || "usd_divisa";
   const purchases = data.truckPurchases.filter((p) => p.supplier_id === id);
@@ -301,7 +305,7 @@ export default function SupplierDetail() {
       </div>
 
       {isAdmin && (
-        <div className="flex gap-2 mb-4">
+        <div className="flex flex-col gap-2 mb-4 sm:flex-row sm:flex-wrap">
           <Button onClick={handleCreatePurchase}>
             <Plus className="w-4 h-4 mr-2" /> Nueva Compra
           </Button>

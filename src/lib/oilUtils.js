@@ -385,3 +385,39 @@ export function adjustmentFields(monedaLabel) {
     },
   ];
 }
+
+/**
+ * URLS CON NOMBRE EN VEZ DE ID
+ *
+ * "/proveedores/9d50007d-df41-40db-9f3f-a396448c7d8b" no le dice nada a nadie;
+ * "/proveedores/biocedes-sintiolo" sí. El id sigue siendo la clave real en la
+ * base: esto es sólo cómo se ve la dirección.
+ */
+export function slugify(nombre) {
+  return String(nombre || "")
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+/**
+ * Encuentra el registro por el nombre de la URL, y si no por id.
+ *
+ * El respaldo por id importa: los enlaces guardados de antes siguen andando, y
+ * si alguien renombra un proveedor la dirección vieja deja de resolver por
+ * nombre pero la de id sigue.
+ */
+export function findBySlugOrId(lista, clave) {
+  if (!clave) return undefined;
+  return (
+    (lista || []).find((x) => slugify(x.name) === clave) ||
+    (lista || []).find((x) => x.id === clave)
+  );
+}
+
+/** La dirección de una ficha. Cae al id si el registro no tiene nombre. */
+const ruta = (base) => (x) => `/${base}/${x?.name ? slugify(x.name) : x?.id || ""}`;
+export const rutaProveedor = ruta("proveedores");
+export const rutaRefineria = ruta("refinerias");
+export const rutaComprador = ruta("compradores");

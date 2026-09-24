@@ -175,7 +175,7 @@ export default function Activity() {
       </div>
 
       <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
-        <Table>
+        <Table className="whitespace-nowrap">
           <TableHeader>
             <TableRow>
               <TableHead className="w-36">Cuándo</TableHead>
@@ -288,8 +288,8 @@ function DetalleDialog({ fila, nombres, onClose }) {
           {cuando(fila.at)} · {fila.actor_email || "desde la base de datos, sin pasar por la app"}
         </p>
 
-        <div className="rounded-lg border border-border overflow-hidden">
-          <Table>
+        <div className="rounded-lg border border-border overflow-x-auto">
+          <Table className="whitespace-nowrap">
             <TableHeader>
               <TableRow>
                 <TableHead>Campo</TableHead>

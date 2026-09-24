@@ -14,6 +14,7 @@ import {
   formatDate,
   currencyLabels,
   todayStr,
+  rutaRefineria,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
@@ -101,7 +102,7 @@ export default function RefineryPayments() {
         description="Registro de pagos y saldos iniciales con refinerías"
         action={
           isAdmin && (
-            <Button onClick={handleCreate}>
+            <Button className="w-full sm:w-auto" onClick={handleCreate}>
               <Plus className="w-4 h-4 mr-2" /> Nuevo Pago
             </Button>
           )
@@ -109,7 +110,7 @@ export default function RefineryPayments() {
       />
 
       <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
-        <Table>
+        <Table className="whitespace-nowrap">
           <TableHeader>
             <TableRow>
               <TableHead>Fecha</TableHead>
@@ -139,7 +140,7 @@ export default function RefineryPayments() {
                   <TableRow key={p.id}>
                     <TableCell className="text-muted-foreground">{formatDate(p.date)}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={`/refinerias/${p.refinery_id}`} className="hover:text-primary">
+                      <Link to={rutaRefineria(refinery)} className="hover:text-primary">
                         {refinery?.name || "—"}
                       </Link>
                     </TableCell>

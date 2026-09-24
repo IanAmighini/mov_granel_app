@@ -112,7 +112,7 @@ export default function DirectSales() {
         description="Ventas propias de MRT: retiro de un origen y venta directa a un comprador, sin pasar por el stock de una refinería."
         action={
           isAdmin && (
-            <Button onClick={handleCreate}>
+            <Button className="w-full sm:w-auto" onClick={handleCreate}>
               <Plus className="w-4 h-4 mr-2" /> Nueva Venta
             </Button>
           )
@@ -120,7 +120,7 @@ export default function DirectSales() {
       />
 
       <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
-        <Table>
+        <Table className="whitespace-nowrap">
           <TableHeader>
             <TableRow>
               <TableHead>Fecha</TableHead>

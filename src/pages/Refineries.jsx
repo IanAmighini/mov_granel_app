@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Pencil, Eye } from "lucide-react";
+import { Plus, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import ResourceFormDialog from "@/components/ResourceFormDialog";
@@ -13,6 +13,7 @@ import {
   formatUsd,
   formatTons,
   pricingTypeLabels,
+  rutaRefineria,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
@@ -78,7 +79,7 @@ export default function Refineries() {
         description="Gestión de refinerías, stock y cuentas corrientes"
         action={
           isAdmin && (
-            <Button onClick={handleCreate}>
+            <Button className="w-full sm:w-auto" onClick={handleCreate}>
               <Plus className="w-4 h-4 mr-2" /> Nueva Refinería
             </Button>
           )
@@ -89,7 +90,7 @@ export default function Refineries() {
         <p className="text-muted-foreground">Cargando...</p>
       ) : (
         <div className="bg-card rounded-xl border border-border overflow-hidden overflow-x-auto">
-          <Table>
+          <Table className="whitespace-nowrap">
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
@@ -115,7 +116,11 @@ export default function Refineries() {
                   const { balance } = calcRefineryBalance(r, movements, payments, purchases);
                   return (
                     <TableRow key={r.id}>
-                      <TableCell className="font-medium">{r.name}</TableCell>
+                      <TableCell className="font-medium">
+                        <Link to={rutaRefineria(r)} className="hover:text-primary">
+                          {r.name}
+                        </Link>
+                      </TableCell>
                       <TableCell className="text-muted-foreground">
                         <span className="inline-flex px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-foreground">
                           {pricingTypeLabels[r.pricing_type] || r.pricing_type}
@@ -131,11 +136,6 @@ export default function Refineries() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1">
-                          <Link to={`/refinerias/${r.id}`}>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                          </Link>
                           {isAdmin && (
                             <>
                               <Button variant="ghost" size="sm" onClick={() => handleEdit(r)}>

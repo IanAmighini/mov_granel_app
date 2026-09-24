@@ -7,7 +7,12 @@ import ResourceFormDialog from "@/components/ResourceFormDialog";
 import DeleteButton from "@/components/DeleteButton";
 import PageHeader from "@/components/PageHeader";
 import { useOilData } from "@/hooks/useOilData";
-import { calcSupplierBalance, formatUsd, accountCurrencyLabels } from "@/lib/oilUtils";
+import {
+  calcSupplierBalance,
+  formatUsd,
+  accountCurrencyLabels,
+  rutaProveedor,
+} from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -66,7 +71,7 @@ export default function Suppliers() {
         description="Gestión de proveedores y cuentas corrientes"
         action={
           isAdmin && (
-            <Button onClick={handleCreate}>
+            <Button className="w-full sm:w-auto" onClick={handleCreate}>
               <Plus className="w-4 h-4 mr-2" /> Nuevo Proveedor
             </Button>
           )
@@ -76,8 +81,8 @@ export default function Suppliers() {
       {loading || !data ? (
         <p className="text-muted-foreground">Cargando...</p>
       ) : (
-        <div className="bg-card rounded-xl border border-border overflow-hidden">
-          <Table>
+        <div className="bg-card rounded-xl border border-border overflow-x-auto">
+          <Table className="whitespace-nowrap">
             <TableHeader>
               <TableRow>
                 <TableHead>Nombre</TableHead>
@@ -103,7 +108,7 @@ export default function Suppliers() {
                   return (
                     <TableRow key={s.id}>
                       <TableCell className="font-medium">
-                        <Link to={`/proveedores/${s.id}`} className="hover:text-primary">
+                        <Link to={rutaProveedor(s)} className="hover:text-primary">
                           {s.name}
                         </Link>
                       </TableCell>

@@ -16,6 +16,8 @@ import {
   incrementAgreement,
   decrementAgreement,
   driverSuggestions,
+  rutaComprador,
+  rutaRefineria,
 } from "@/lib/oilUtils";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
@@ -155,15 +157,15 @@ export default function RefineryMovements() {
         description="Retiro de aceite refinado. Descuenta stock de la refinería e imputa en la cuenta del comprador."
         action={
           isAdmin && (
-            <Button onClick={handleCreate}>
+            <Button className="w-full sm:w-auto" onClick={handleCreate}>
               <Plus className="w-4 h-4 mr-2" /> Nuevo Egreso
             </Button>
           )
         }
       />
 
-      <div className="bg-card rounded-xl border border-border overflow-hidden">
-        <Table>
+      <div className="bg-card rounded-xl border border-border overflow-x-auto">
+        <Table className="whitespace-nowrap">
           <TableHeader>
             <TableRow>
               <TableHead>Fecha</TableHead>
@@ -190,7 +192,7 @@ export default function RefineryMovements() {
                   <TableRow key={m.id}>
                     <TableCell className="text-muted-foreground">{formatDate(m.date)}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={`/refinerias/${m.refinery_id}`} className="hover:text-primary">
+                      <Link to={rutaRefineria(refinery)} className="hover:text-primary">
                         {refinery?.name || "—"}
                       </Link>
                     </TableCell>
@@ -203,7 +205,7 @@ export default function RefineryMovements() {
                     <TableCell className="text-muted-foreground">{m.ticket_number || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {buyer ? (
-                        <Link to={`/compradores/${m.destination}`} className="hover:text-primary">
+                        <Link to={rutaComprador(buyer)} className="hover:text-primary">
                           {buyer.name}
                         </Link>
                       ) : (

@@ -21,13 +21,14 @@ import {
   todayStr,
   adjustmentFields,
   driverSuggestions,
+  findBySlugOrId,
 } from "@/lib/oilUtils";
 import { refineryLedger, refineryStockLedger } from "@/lib/ledger";
 import { sheetsClient } from "@/api/sheetsClient";
 import { useAuth } from "@/lib/AuthContext";
 
 export default function RefineryDetail() {
-  const { id } = useParams();
+  const { id: slug } = useParams();   // puede ser el nombre o un id viejo
   const { data, loading, refetch } = useOilData();
   const { isAdmin } = useAuth();
   const [movementDialog, setMovementDialog] = useState(false);
@@ -40,8 +41,11 @@ export default function RefineryDetail() {
 
   if (loading || !data) return <p className="text-muted-foreground">Cargando...</p>;
 
-  const refinery = data.refineries.find((r) => r.id === id);
+  const refinery = findBySlugOrId(data.refineries, slug);
   if (!refinery) return <p className="text-muted-foreground">Refinería no encontrada</p>;
+
+  // El id real del registro: el resto de la pantalla lo usa para filtrar.
+  const id = refinery.id;
 
   const movements = data.refineryMovements.filter((m) => m.refinery_id === id);
   const payments = data.refineryPayments.filter((p) => p.refinery_id === id);
@@ -353,8 +357,8 @@ export default function RefineryDetail() {
               </Button>
             )}
           </div>
-          <div className="bg-card rounded-xl border border-border overflow-hidden">
-            <Table>
+          <div className="bg-card rounded-xl border border-border overflow-x-auto">
+            <Table className="whitespace-nowrap">
               <TableHeader>
                 <TableRow>
                   <TableHead>Tipo</TableHead>
@@ -409,7 +413,7 @@ export default function RefineryDetail() {
 
         <div>
           <h2 className="text-sm font-semibold text-foreground mb-3">Cuenta Corriente</h2>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <Card className="p-4">
               <p className="text-xs text-muted-foreground">Procesos (Debe)</p>
               <p className="text-lg font-bold text-foreground mt-1">{formatUsd(totalCharges)}</p>
@@ -430,7 +434,7 @@ export default function RefineryDetail() {
             </Card>
           </div>
           {isAdmin && (
-            <div className="flex gap-2 mt-4">
+            <div className="flex flex-col gap-2 mt-4 sm:flex-row sm:flex-wrap">
               <Button onClick={handleCreateMovement}>
                 <Plus className="w-4 h-4 mr-2" /> Nuevo Egreso / Saldo Inicial
               </Button>
