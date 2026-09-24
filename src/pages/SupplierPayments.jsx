@@ -140,7 +140,7 @@ export default function SupplierPayments() {
                   <TableRow key={p.id}>
                     <TableCell className="text-muted-foreground">{formatDate(p.date)}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={rutaProveedor(supplier)} className="hover:text-primary">
+                      <Link to={rutaProveedor(supplier)} className="hover:text-enlace">
                         {supplier?.name || "—"}
                       </Link>
                     </TableCell>

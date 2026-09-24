@@ -108,7 +108,7 @@ export default function Suppliers() {
                   return (
                     <TableRow key={s.id}>
                       <TableCell className="font-medium">
-                        <Link to={rutaProveedor(s)} className="hover:text-primary">
+                        <Link to={rutaProveedor(s)} className="hover:text-enlace">
                           {s.name}
                         </Link>
                       </TableCell>

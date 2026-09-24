@@ -14,7 +14,7 @@ export default function ForgotPassword() {
         Por el momento no hay recuperación automática por email. Contactate con
         el administrador del sistema para que te asigne una contraseña nueva.
       </p>
-      <Link to="/login" className="text-primary font-medium hover:underline text-sm">
+      <Link to="/login" className="text-enlace font-medium hover:underline text-sm">
         Volver a iniciar sesión
       </Link>
     </AuthLayout>

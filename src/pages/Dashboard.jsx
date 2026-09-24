@@ -174,7 +174,7 @@ export default function Dashboard() {
                   <TableRow key={s.id}>
                     <TableCell className="text-muted-foreground/70 font-medium">{idx + 1}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={rutaProveedor(s)} className="hover:text-primary">
+                      <Link to={rutaProveedor(s)} className="hover:text-enlace">
                         {s.name}
                       </Link>
                     </TableCell>
@@ -217,7 +217,7 @@ export default function Dashboard() {
                   <TableRow key={s.id}>
                     <TableCell className="text-muted-foreground/70 font-medium">{idx + 1}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={rutaProveedor(s)} className="hover:text-primary">
+                      <Link to={rutaProveedor(s)} className="hover:text-enlace">
                         {s.name}
                       </Link>
                     </TableCell>
@@ -354,7 +354,7 @@ export default function Dashboard() {
               <Card key={b.id} className="p-4">
                 <Link
                   to={rutaComprador(b)}
-                  className="block font-semibold text-foreground mb-3 hover:text-primary"
+                  className="block font-semibold text-foreground mb-3 hover:text-enlace"
                 >
                   {b.name}
                 </Link>

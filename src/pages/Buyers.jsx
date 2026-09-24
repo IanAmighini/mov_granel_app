@@ -115,7 +115,7 @@ export default function Buyers() {
                   return (
                     <TableRow key={b.id}>
                       <TableCell className="font-medium">
-                        <Link to={rutaComprador(b)} className="hover:text-primary">
+                        <Link to={rutaComprador(b)} className="hover:text-enlace">
                           {b.name}
                         </Link>
                       </TableCell>

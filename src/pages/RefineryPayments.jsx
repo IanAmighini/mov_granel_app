@@ -140,7 +140,7 @@ export default function RefineryPayments() {
                   <TableRow key={p.id}>
                     <TableCell className="text-muted-foreground">{formatDate(p.date)}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={rutaRefineria(refinery)} className="hover:text-primary">
+                      <Link to={rutaRefineria(refinery)} className="hover:text-enlace">
                         {refinery?.name || "—"}
                       </Link>
                     </TableCell>

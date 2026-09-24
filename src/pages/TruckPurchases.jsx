@@ -323,7 +323,7 @@ export default function TruckPurchases() {
                   <TableRow key={p.id}>
                     <TableCell className="text-muted-foreground">{formatDate(p.date)}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={rutaProveedor(supplier)} className="hover:text-primary">
+                      <Link to={rutaProveedor(supplier)} className="hover:text-enlace">
                         {supplier?.name || "—"}
                       </Link>
                       {agreement && (
@@ -344,11 +344,11 @@ export default function TruckPurchases() {
                     <TableCell className="text-muted-foreground">{currencyLabels[p.price_currency]}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {refinery ? (
-                        <Link to={rutaRefineria(refinery)} className="hover:text-primary">
+                        <Link to={rutaRefineria(refinery)} className="hover:text-enlace">
                           {refinery.name}
                         </Link>
                       ) : buyer ? (
-                        <Link to={rutaComprador(buyer)} className="hover:text-primary">
+                        <Link to={rutaComprador(buyer)} className="hover:text-enlace">
                           {buyer.name} <span className="text-xs text-aviso">(directo)</span>
                         </Link>
                       ) : (

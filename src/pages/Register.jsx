@@ -14,7 +14,7 @@ export default function Register() {
         Por el momento, las cuentas nuevas las crea el administrador del sistema.
         Contactate con él para que te dé acceso.
       </p>
-      <Link to="/login" className="text-primary font-medium hover:underline text-sm">
+      <Link to="/login" className="text-enlace font-medium hover:underline text-sm">
         Volver a iniciar sesión
       </Link>
     </AuthLayout>

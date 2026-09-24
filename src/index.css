@@ -21,8 +21,8 @@
     --card-foreground: 30 12% 14%;
     --popover: 0 0% 100%;
     --popover-foreground: 30 12% 14%;
-    --primary: 28 10% 18%;
-    --primary-foreground: 45 40% 97%;
+    --primary: 40 80% 52%;
+    --primary-foreground: 30 25% 12%;
     --secondary: 40 20% 94%;
     --secondary-foreground: 28 12% 18%;
     --muted: 45 22% 95%;
@@ -40,6 +40,10 @@
     --debe: 0 68% 45%;
     --haber: 152 52% 30%;
     --aviso: 32 78% 38%;
+    /* Para enlaces: el dorado de los botones sobre blanco no
+       llega al contraste mínimo, así que el texto usa uno más
+       profundo. En oscuro no hace falta y vuelve al brillante. */
+    --enlace: 36 74% 33%;
 
     --chart-1: 43 74% 49%;
     --chart-2: 92 30% 34%;
@@ -89,6 +93,7 @@
       --debe: 0 76% 66%;
       --haber: 152 48% 55%;
       --aviso: 40 82% 62%;
+      --enlace: 40 78% 60%;
 
       --chart-1: 43 74% 58%;
       --chart-2: 92 32% 52%;

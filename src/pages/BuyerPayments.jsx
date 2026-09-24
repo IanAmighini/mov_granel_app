@@ -137,7 +137,7 @@ export default function BuyerPayments() {
                 <TableRow key={p.id}>
                   <TableCell className="text-muted-foreground">{formatDate(p.date)}</TableCell>
                   <TableCell className="font-medium">
-                    <Link to={rutaComprador(getBuyer(p.buyer_id))} className="hover:text-primary">
+                    <Link to={rutaComprador(getBuyer(p.buyer_id))} className="hover:text-enlace">
                       {getBuyerName(p.buyer_id)}
                     </Link>
                   </TableCell>

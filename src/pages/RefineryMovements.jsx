@@ -192,7 +192,7 @@ export default function RefineryMovements() {
                   <TableRow key={m.id}>
                     <TableCell className="text-muted-foreground">{formatDate(m.date)}</TableCell>
                     <TableCell className="font-medium">
-                      <Link to={rutaRefineria(refinery)} className="hover:text-primary">
+                      <Link to={rutaRefineria(refinery)} className="hover:text-enlace">
                         {refinery?.name || "—"}
                       </Link>
                     </TableCell>
@@ -205,7 +205,7 @@ export default function RefineryMovements() {
                     <TableCell className="text-muted-foreground">{m.ticket_number || "—"}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {buyer ? (
-                        <Link to={rutaComprador(buyer)} className="hover:text-primary">
+                        <Link to={rutaComprador(buyer)} className="hover:text-enlace">
                           {buyer.name}
                         </Link>
                       ) : (

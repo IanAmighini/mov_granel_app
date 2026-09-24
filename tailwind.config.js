@@ -18,6 +18,7 @@ module.exports = {
   			debe: 'hsl(var(--debe))',
   			haber: 'hsl(var(--haber))',
   			aviso: 'hsl(var(--aviso))',
+  			enlace: 'hsl(var(--enlace))',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

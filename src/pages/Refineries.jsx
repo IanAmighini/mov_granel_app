@@ -117,7 +117,7 @@ export default function Refineries() {
                   return (
                     <TableRow key={r.id}>
                       <TableCell className="font-medium">
-                        <Link to={rutaRefineria(r)} className="hover:text-primary">
+                        <Link to={rutaRefineria(r)} className="hover:text-enlace">
                           {r.name}
                         </Link>
                       </TableCell>
