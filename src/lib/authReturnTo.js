@@ -31,3 +31,14 @@ export function safeReturnTo() {
     return "/";
   }
 }
+
+// A dónde mandar cuando la sesión se vence, para volver después de entrar a la
+// página donde estaba. Vive acá, al lado de safeReturnTo(), porque son las dos
+// puntas de lo mismo: esta arma el returnTo y aquella lo valida al leerlo.
+export function loginUrlConRetorno() {
+  const actual = window.location.pathname + window.location.search;
+  const params = new URLSearchParams({ vencida: "1" });
+  // Si ya está en el login no tiene sentido volver ahí.
+  if (!actual.startsWith("/login")) params.set("returnTo", actual);
+  return "/login?" + params.toString();
+}

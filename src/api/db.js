@@ -35,6 +35,31 @@ function getToken() {
   return sessionStorage.getItem("sessionToken");
 }
 
+/**
+ * Cuándo vence la sesión, en milisegundos, leído del `exp` del JWT que firmó
+ * la Edge Function. 0 si no hay token.
+ *
+ * Devuelve `null` si el token existe pero no se puede leer. Eso NO cuenta como
+ * vencido a propósito: echar a alguien por un token ilegible podría dejarlo
+ * dando vueltas entre el login y la app. En ese caso se comporta como antes y,
+ * si de verdad está vencido, lo rechaza el servidor.
+ */
+export function sessionExpiresAt() {
+  const token = getToken();
+  if (!token) return 0;
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1]));
+    return typeof payload.exp === "number" ? payload.exp * 1000 : null;
+  } catch {
+    return null;
+  }
+}
+
+export function sessionExpired() {
+  const vence = sessionExpiresAt();
+  return vence !== null && Date.now() >= vence;
+}
+
 export const supabase = createClient(URL, ANON, {
   // Login propio: el JWT lo firma la Edge Function, no el Auth de Supabase.
   accessToken: async () => getToken(),
@@ -267,6 +292,12 @@ const auth = {
     sessionStorage.removeItem("sessionToken");
   },
   me() {
+    // El token vencido no se avisa solo: sin esto la app seguía mostrando todo
+    // como si nada y recién fallaba al guardar.
+    if (sessionExpired()) {
+      auth.logout();
+      return null;
+    }
     const raw = sessionStorage.getItem("currentUser");
     return raw ? JSON.parse(raw) : null;
   },

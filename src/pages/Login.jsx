@@ -15,6 +15,9 @@ export default function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const returnTo = safeReturnTo();
+  // Llega con ?vencida=1 cuando la propia app cortó la sesión por tiempo.
+  // Sin esto el rebote al login parece un error o un deslogueo misterioso.
+  const vencida = new URLSearchParams(window.location.search).get("vencida") === "1";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -51,6 +54,12 @@ export default function Login() {
         </>
       }
     >
+      {vencida && !error && (
+        <div className="mb-4 p-3 rounded-lg bg-aviso/10 text-aviso text-sm">
+          Tu sesión venció por tiempo. Entrá de nuevo y seguís donde estabas.
+        </div>
+      )}
+
       {error && (
         <div className="mb-4 p-3 rounded-lg bg-destructive/10 text-destructive text-sm">
           {error}

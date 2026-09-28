@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useLocation } from 'react-router-dom';
 import NotFound from './pages/NotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import ScrollToTop from './components/ScrollToTop';
@@ -31,6 +31,15 @@ import BuyerPayments from './pages/BuyerPayments.jsx';
 import BuyerDetail from './pages/BuyerDetail';
 import Activity from './pages/Activity';
 
+// Al login, anotando en qué página estaba para volver ahí después de entrar.
+const AlLogin = () => {
+  const { pathname, search } = useLocation();
+  const actual = pathname + search;
+  const destino =
+    actual === '/' ? '/login' : '/login?returnTo=' + encodeURIComponent(actual);
+  return <Navigate to={destino} replace />;
+};
+
 const AuthenticatedApp = () => {
   const { isLoadingAuth } = useAuth();
 
@@ -53,7 +62,7 @@ const AuthenticatedApp = () => {
       {/* Rutas protegidas: requieren login */}
       <Route
         element={
-          <ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />
+          <ProtectedRoute unauthenticatedElement={<AlLogin />} />
         }
       >
         <Route element={<Layout />}>
