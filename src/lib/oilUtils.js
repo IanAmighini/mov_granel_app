@@ -75,6 +75,25 @@ export function convertToUsdDivisa(amount, currency, usd_divisa_rate, usd_blue_r
   }
 }
 
+/**
+ * ¿Hacen falta las dos cotizaciones?
+ *
+ * Sólo para convertir. "USD Blue" (moneda del precio) y "USD Billete" (moneda
+ * de cuenta) son la misma plata con dos nombres: un camión pactado en blue
+ * sobre una cuenta en billete pasa tal cual, y pedir cotizaciones ahí obliga a
+ * inventar un 1 y 1 de relleno. Al revés —precio en divisa sobre una cuenta en
+ * billete— sí hacen falta, y sin ellas el importe da 0.
+ *
+ * Es la misma regla que aplica el trigger `compra_cotizaciones()` en la base.
+ */
+export function needsRates(priceCurrency, accountCurrency = "usd_divisa") {
+  const enMonedaDeCuenta =
+    accountCurrency === "usd_billete"
+      ? priceCurrency === "usd_blue"
+      : priceCurrency === "usd_divisa";
+  return !enMonedaDeCuenta;
+}
+
 export function calcTruckPurchaseAmount(purchase, accountCurrency = "usd_divisa") {
   const netTons = calcNetTons(purchase);
   const total = netTons * (purchase.price_per_ton || 0);
@@ -148,6 +167,9 @@ export function getLatestRateForSupplier(supplierId, purchases, payments) {
   ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
   for (const t of allTransactions) {
+    // El 1 y 1 de relleno de los asientos viejos no es una cotización: leerlo
+    // como tal convertiría el saldo a la par y desfasaría el Dashboard.
+    if (t.usd_divisa_rate === 1 && t.usd_blue_rate === 1) continue;
     if (t.usd_divisa_rate && t.usd_blue_rate) {
       return { usd_divisa_rate: t.usd_divisa_rate, usd_blue_rate: t.usd_blue_rate };
     }

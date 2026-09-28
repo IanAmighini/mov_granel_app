@@ -139,11 +139,10 @@ create table truck_purchases (
   constraint purchase_has_destination check (
     (refinery_id is not null and buyer_id is null) or
     (buyer_id is not null and refinery_id is null)
-  ),
-  -- Si el precio es blue, hacen falta las dos cotizaciones para convertir.
-  constraint purchase_blue_needs_rates check (
-    price_currency <> 'usd_blue' or (usd_divisa_rate is not null and usd_blue_rate is not null)
   )
+  -- Las cotizaciones se exigen en `cotizaciones.sql`, con un trigger: la regla
+  -- depende de la moneda de cuenta del proveedor y un CHECK no puede mirar
+  -- otra tabla.
 );
 
 create index on truck_purchases (supplier_id, date desc);

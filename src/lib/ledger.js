@@ -17,6 +17,7 @@ import {
   convertToUsdDivisa,
   calcRefinedSaleUsdDivisa,
   calcDirectSaleUsdDivisa,
+  needsRates,
   oilTypeLabels,
   currencyLabels,
 } from "./oilUtils";
@@ -129,10 +130,7 @@ function precioDeCuenta(p, acct) {
   const precio = p.price_per_ton || 0;
   const div = p.usd_divisa_rate;
   const blue = p.usd_blue_rate;
-  const mismaMoneda =
-    acct === "usd_billete" ? p.price_currency === "usd_blue"
-                           : p.price_currency === "usd_divisa";
-  if (mismaMoneda) return precio;
+  if (!needsRates(p.price_currency, acct)) return precio;
   if (!div || !blue) return "";
   return acct === "usd_billete" ? precio * (div / blue) : precio * (blue / div);
 }

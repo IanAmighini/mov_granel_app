@@ -20,6 +20,7 @@ import {
   incrementAgreement,
   decrementAgreement,
   driverSuggestions,
+  needsRates,
   rutaComprador,
   rutaProveedor,
   rutaRefineria,
@@ -51,10 +52,21 @@ export default function TruckPurchases() {
     drivers: driverSuggestions(data),
   };
 
-  const supplierNeedsRates = (values, ctx) => {
-    const supplier = ctx.suppliers.find((s) => s.id === values.supplier_id);
-    return values.price_currency === "usd_blue" || supplier?.account_currency === "usd_billete";
-  };
+  const cuentaDelProveedor = (values, ctx) =>
+    ctx.suppliers.find((s) => s.id === values.supplier_id)?.account_currency || "usd_divisa";
+
+  // Obligatorias sólo si hay que convertir. La misma regla que el trigger
+  // `compra_cotizaciones()` en la base.
+  const cotizacionesObligatorias = (values, ctx) =>
+    !!values.price_currency && needsRates(values.price_currency, cuentaDelProveedor(values, ctx));
+
+  // En una cuenta llevada en billete se muestran igual aunque no hagan falta:
+  // son las que el Dashboard usa después para pasar el saldo a divisa.
+  const mostrarCotizaciones = (values, ctx) =>
+    cotizacionesObligatorias(values, ctx) || cuentaDelProveedor(values, ctx) === "usd_billete";
+
+  const hintCotizacion = (base, extra) => (values, ctx) =>
+    cotizacionesObligatorias(values, ctx) ? base : `${base} ${extra}`;
 
   const fields = [
     { name: "date", label: "Fecha", type: "date", required: true, defaultValue: todayStr() },
@@ -131,7 +143,12 @@ export default function TruckPurchases() {
       type: "currency",
       hint: "ARS por 1 USD divisa.",
       placeholder: "Ej: 1050",
-      showIf: supplierNeedsRates,
+      showIf: mostrarCotizaciones,
+      required: cotizacionesObligatorias,
+      dynamicHint: hintCotizacion(
+        "ARS por 1 USD divisa.",
+        "Opcional: el precio ya está en la moneda de la cuenta. Si las cargás, el Dashboard las usa para pasar el saldo a divisa.",
+      ),
     },
     {
       name: "usd_blue_rate",
@@ -139,7 +156,12 @@ export default function TruckPurchases() {
       type: "currency",
       hint: "ARS por 1 USD blue.",
       placeholder: "Ej: 1200",
-      showIf: supplierNeedsRates,
+      showIf: mostrarCotizaciones,
+      required: cotizacionesObligatorias,
+      dynamicHint: hintCotizacion(
+        "ARS por 1 USD blue.",
+        "Opcional: el precio ya está en la moneda de la cuenta.",
+      ),
     },
     {
       name: "is_direct_sale",
