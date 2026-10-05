@@ -248,6 +248,26 @@ function origenDestino(m, { suppliers, buyers, truckPurchases }) {
 // --------------------------------------------------------------- refinería
 
 /**
+ * Chofer y ticket de un movimiento de refinería.
+ *
+ * Un ingreso de crudo que sale de una compra lo genera la app sola, y nunca
+ * se le copiaron estos dos datos: viven en la compra. Se leen de ahí en vez de
+ * duplicarlos, así una corrección en la compra se ve también acá, y la
+ * historia ya cargada aparece completa sin tocar la base. Si el movimiento
+ * tiene los suyos (un egreso, o uno cargado a mano) mandan esos.
+ */
+function choferYTicket(m, truckPurchases) {
+  const compra = m.truck_purchase_id
+    ? (truckPurchases || []).find((p) => p.id === m.truck_purchase_id)
+    : null;
+  return {
+    driver: m.driver || compra?.driver || "",
+    ticket: m.ticket_number || compra?.ticket_number || "",
+  };
+}
+
+
+/**
  * CUENTA CORRIENTE de una refinería: sólo la plata.
  *
  * Entran los movimientos que generan cargo de fasón y los pagos. Los que no
@@ -281,7 +301,7 @@ export function refineryLedger(refinery, { movements, payments, suppliers, buyer
     cargos.push(
       fila({
         id: m.id, kind: esIngreso ? "in" : "out", date: m.date,
-        driver: m.driver, ticket: m.ticket_number,
+        ...choferYTicket(m, truckPurchases),
         route: origenDestino(m, { suppliers, buyers, truckPurchases }),
         price: costo, tons: tn,
         comments:
@@ -321,7 +341,7 @@ export function refineryStockLedger(refinery, movements, ctx = {}) {
     return fila({
       id: m.id, kind: esAjuste ? "adjustment" : esIngreso ? "in" : "out", date: m.date,
       oil: oilTypeLabels[m.oil_type] || m.oil_type,
-      driver: m.driver, ticket: m.ticket_number,
+      ...choferYTicket(m, ctx.truckPurchases),
       route: origenDestino(m, ctx),
       tin: !esAjuste && esIngreso ? tn : "",
       tout: !esAjuste && !esIngreso ? tn : "",
