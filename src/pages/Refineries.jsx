@@ -39,6 +39,13 @@ const fields = [
     type: "currency",
     hint: "No aplica para 'Sin Costo'.",
   },
+  {
+    name: "monthly_free_tons",
+    label: "Cupo Mensual de Retiro (Tn)",
+    type: "number",
+    placeholder: "Ej: 150",
+    hint: "Opcional. Toneladas que se pueden retirar gratis por mes; el Dashboard muestra cuánto falta.",
+  },
   { name: "notes", label: "Notas", type: "textarea" },
 ];
 
@@ -60,7 +67,12 @@ export default function Refineries() {
 
   const handleSubmit = async (values) => {
     if (editingItem) {
-      await sheetsClient.entities.Refinery.update(editingItem.id, values);
+      // El formulario no manda los campos vacíos, así que borrar el cupo no
+      // llegaría nunca a la base: hay que mandarlo vacío a propósito.
+      await sheetsClient.entities.Refinery.update(editingItem.id, {
+        monthly_free_tons: null,
+        ...values,
+      });
     } else {
       await sheetsClient.entities.Refinery.create(values);
     }

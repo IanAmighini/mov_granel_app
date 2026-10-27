@@ -48,6 +48,7 @@ nuevo:
 | `login_intentos.sql` | freno al login tras 5 intentos fallidos |
 | `estado_acuerdos.sql` | el estado de un acuerdo lo calcula la base |
 | `cotizaciones.sql` | las cotizaciones se piden sólo si hay algo que convertir |
+| `cupo_retiro.sql` | cupo mensual de retiro gratis por refinería |
 | `nuevo_usuario.sql` | alta de usuarios (bcrypt dentro de Postgres) |
 
 Y las herramientas:

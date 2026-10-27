@@ -272,6 +272,84 @@ export function calcRefineryStock(movements) {
   return { byOilType, total };
 }
 
+/**
+ * CUPO MENSUAL DE RETIRO de una refinería (El Triunfo: 150 tn gratis por mes).
+ *
+ * Cuentan los retiros de refinado del mes calendario, sin importar a quién
+ * vayan. No cuentan los saldos iniciales ni los ajustes de stock: no son
+ * camiones que salieron. El cupo no se acumula: lo que no se retira en el mes
+ * se pierde, y por eso importa ver a tiempo cuánto falta.
+ *
+ * `hoy` se toma en hora local: con toISOString(), después de las 21 h del
+ * último día del mes ya contaría como el mes siguiente.
+ */
+const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
+  "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+
+const claveDeMes = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+
+export function nombreDeMes(clave) {
+  const [anio, mes] = clave.split("-").map(Number);
+  return `${MESES[mes - 1]} ${anio}`;
+}
+
+function retirosDeCupo(movements) {
+  return movements.filter((m) => m.movement_type === "refined_out" && !m.is_initial_balance);
+}
+
+/** Toneladas de un camión típico de esta refinería: promedio de los últimos 10. */
+function camionTipico(retiros) {
+  const ultimos = [...retiros].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 10);
+  if (ultimos.length === 0) return 30;
+  return ultimos.reduce((s, m) => s + (m.tons || 0), 0) / ultimos.length;
+}
+
+export function calcCupoDelMes(refinery, movements, hoy = new Date()) {
+  const cupo = Number(refinery.monthly_free_tons) || 0;
+  if (!cupo) return null;
+
+  const retiros = retirosDeCupo(movements);
+  const mes = claveDeMes(hoy);
+  const delMes = retiros.filter((m) => (m.date || "").startsWith(mes));
+  const retirado = delMes.reduce((s, m) => s + (m.tons || 0), 0);
+  const falta = Math.max(0, cupo - retirado);
+  const porCamion = camionTipico(retiros);
+  const diasDelMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+
+  return {
+    mes,
+    cupo,
+    retirado,
+    camiones: delMes.length,
+    falta,
+    excedido: Math.max(0, retirado - cupo),
+    camionesFaltan: falta > 0 ? Math.ceil(falta / porCamion) : 0,
+    porCamion,
+    diasRestantes: diasDelMes - hoy.getDate() + 1,   // hoy incluido
+    percent: Math.min(100, (retirado / cupo) * 100),
+  };
+}
+
+/** Los meses anteriores, del más nuevo al más viejo, desde el primer retiro. */
+export function calcHistorialDeCupo(refinery, movements, meses = 6, hoy = new Date()) {
+  const cupo = Number(refinery.monthly_free_tons) || 0;
+  if (!cupo) return [];
+  const retiros = retirosDeCupo(movements);
+  const primero = retiros.reduce((min, m) => (!min || m.date < min ? m.date : min), null);
+  if (!primero) return [];
+
+  const filas = [];
+  for (let i = 1; i <= meses; i++) {
+    const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+    const mes = claveDeMes(d);
+    if (mes < primero.slice(0, 7)) break;
+    const delMes = retiros.filter((m) => (m.date || "").startsWith(mes));
+    const retirado = delMes.reduce((s, m) => s + (m.tons || 0), 0);
+    filas.push({ mes, retirado, camiones: delMes.length, percent: (retirado / cupo) * 100 });
+  }
+  return filas;
+}
+
 export function calcAgreementProgress(agreement) {
   const delivered = agreement.delivered_count || 0;
   const total = agreement.total_deliveries || 0;

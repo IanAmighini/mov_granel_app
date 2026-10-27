@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import StatCard from "@/components/StatCard";
 import PageHeader from "@/components/PageHeader";
 import RefineryStockCard from "@/components/RefineryStockCard";
+import CupoRetiro from "@/components/CupoRetiro";
 import { useOilData } from "@/hooks/useOilData";
 import {
   calcSupplierBalance,
@@ -104,6 +105,9 @@ export default function Dashboard() {
 
   const activeAgreements = (data.purchaseAgreements || []).filter((a) => a.status === "open");
 
+  // Arriba de todo: el cupo que no se retira en el mes se pierde.
+  const refineriesConCupo = refineries.filter((r) => r.monthly_free_tons);
+
   const recentPurchases = [...truckPurchases]
     .sort((a, b) => new Date(b.date) - new Date(a.date))
     .slice(0, 5);
@@ -142,6 +146,22 @@ export default function Dashboard() {
           tone="amber"
         />
       </div>
+
+      {refineriesConCupo.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">Cupo de Retiro del Mes</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {refineriesConCupo.map((r) => (
+              <CupoRetiro
+                key={r.id}
+                refinery={r}
+                movements={refineryMovements.filter((m) => m.refinery_id === r.id)}
+                conNombre
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="mb-8">
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 mb-3">

@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ResourceFormDialog from "@/components/ResourceFormDialog";
 import AccountLedger from "@/components/AccountLedger";
+import CupoRetiro from "@/components/CupoRetiro";
 import { useOilData } from "@/hooks/useOilData";
 import {
   calcRefineryBalance,
@@ -409,6 +410,11 @@ export default function RefineryDetail() {
             </Table>
           </div>
 
+          {refinery.monthly_free_tons && (
+            <div className="mt-4">
+              <CupoRetiro refinery={refinery} movements={movements} conHistorial />
+            </div>
+          )}
         </div>
 
         <div>
