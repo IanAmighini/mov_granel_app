@@ -105,8 +105,8 @@ export default function Dashboard() {
 
   const activeAgreements = (data.purchaseAgreements || []).filter((a) => a.status === "open");
 
-  // Arriba de todo: el cupo que no se retira en el mes se pierde.
-  const refineriesConCupo = refineries.filter((r) => r.monthly_free_tons);
+  // Arriba de todo: el cupo que no se retira en el período se pierde.
+  const refineriesConCupo = refineries.filter((r) => r.withdrawal_quota);
 
   const recentPurchases = [...truckPurchases]
     .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -149,7 +149,7 @@ export default function Dashboard() {
 
       {refineriesConCupo.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">Cupo de Retiro del Mes</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-foreground mb-3">Cupos de Retiro</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {refineriesConCupo.map((r) => (
               <CupoRetiro

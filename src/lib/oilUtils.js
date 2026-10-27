@@ -273,24 +273,46 @@ export function calcRefineryStock(movements) {
 }
 
 /**
- * CUPO MENSUAL DE RETIRO de una refinería (El Triunfo: 150 tn gratis por mes).
+ * CUPO DE RETIRO de una refinería.
  *
- * Cuentan los retiros de refinado del mes calendario, sin importar a quién
- * vayan. No cuentan los saldos iniciales ni los ajustes de stock: no son
- * camiones que salieron. El cupo no se acumula: lo que no se retira en el mes
- * se pierde, y por eso importa ver a tiempo cuánto falta.
+ * Cada refinería puede tener uno, con su unidad y su período: El Triunfo deja
+ * retirar 150 tn gratis por mes; Oligra, 3 retiros por semana. Lo que no se
+ * retira en el período se pierde, y por eso importa ver a tiempo cuánto falta.
  *
- * `hoy` se toma en hora local: con toISOString(), después de las 21 h del
- * último día del mes ya contaría como el mes siguiente.
+ * Cuentan los retiros de refinado, vayan a quien vayan. No cuentan los saldos
+ * iniciales ni los ajustes de stock: no son camiones que salieron.
+ *
+ * La semana va de lunes a domingo. Las fechas se arman en hora local: con
+ * toISOString(), después de las 21 h del último día ya contaría el siguiente.
  */
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
   "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
-const claveDeMes = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+const iso = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const diaMes = (d) => `${d.getDate()}/${d.getMonth() + 1}`;
 
-export function nombreDeMes(clave) {
-  const [anio, mes] = clave.split("-").map(Number);
-  return `${MESES[mes - 1]} ${anio}`;
+export const quotaPeriodLabels = { month: "por mes", week: "por semana" };
+export const quotaUnitLabels = { tons: "Toneladas", trucks: "Retiros" };
+
+/** El período que contiene a `d`, corrido `desplazamiento` períodos para atrás. */
+function periodo(tipo, d, desplazamiento = 0) {
+  if (tipo === "week") {
+    const lunes = new Date(d.getFullYear(), d.getMonth(), d.getDate() - ((d.getDay() + 6) % 7) - 7 * desplazamiento);
+    const domingo = new Date(lunes.getFullYear(), lunes.getMonth(), lunes.getDate() + 6);
+    return {
+      inicio: iso(lunes), fin: iso(domingo),
+      nombre: `semana del ${diaMes(lunes)} al ${diaMes(domingo)}`,
+      dias: 7,
+    };
+  }
+  const primero = new Date(d.getFullYear(), d.getMonth() - desplazamiento, 1);
+  const ultimo = new Date(primero.getFullYear(), primero.getMonth() + 1, 0);
+  return {
+    inicio: iso(primero), fin: iso(ultimo),
+    nombre: `${MESES[primero.getMonth()]} ${primero.getFullYear()}`,
+    dias: ultimo.getDate(),
+  };
 }
 
 function retirosDeCupo(movements) {
@@ -304,48 +326,65 @@ function camionTipico(retiros) {
   return ultimos.reduce((s, m) => s + (m.tons || 0), 0) / ultimos.length;
 }
 
-export function calcCupoDelMes(refinery, movements, hoy = new Date()) {
-  const cupo = Number(refinery.monthly_free_tons) || 0;
+function usoDelPeriodo(retiros, p, enCamiones) {
+  const del = retiros.filter((m) => m.date >= p.inicio && m.date <= p.fin);
+  const toneladas = del.reduce((s, m) => s + (m.tons || 0), 0);
+  return { toneladas, camiones: del.length, usado: enCamiones ? del.length : toneladas };
+}
+
+export function calcCupo(refinery, movements, hoy = new Date()) {
+  const cupo = Number(refinery.withdrawal_quota) || 0;
   if (!cupo) return null;
+  const tipo = refinery.withdrawal_quota_period || "month";
+  const enCamiones = refinery.withdrawal_quota_unit === "trucks";
 
   const retiros = retirosDeCupo(movements);
-  const mes = claveDeMes(hoy);
-  const delMes = retiros.filter((m) => (m.date || "").startsWith(mes));
-  const retirado = delMes.reduce((s, m) => s + (m.tons || 0), 0);
-  const falta = Math.max(0, cupo - retirado);
+  const p = periodo(tipo, hoy);
+  const { toneladas, camiones, usado } = usoDelPeriodo(retiros, p, enCamiones);
   const porCamion = camionTipico(retiros);
-  const diasDelMes = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+  const falta = Math.max(0, cupo - usado);
+
+  const [anio, mes, dia] = p.fin.split("-").map(Number);
+  const hoySinHora = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  const diasRestantes = Math.round((new Date(anio, mes - 1, dia) - hoySinHora) / 86400000) + 1;
 
   return {
-    mes,
+    periodo: p.nombre,
+    tipo,
+    enCamiones,
     cupo,
-    retirado,
-    camiones: delMes.length,
+    usado,
+    toneladas,
+    camiones,
     falta,
-    excedido: Math.max(0, retirado - cupo),
-    camionesFaltan: falta > 0 ? Math.ceil(falta / porCamion) : 0,
+    excedido: Math.max(0, usado - cupo),
+    camionesFaltan: enCamiones ? falta : falta > 0 ? Math.ceil(falta / porCamion) : 0,
+    toneladasFaltan: enCamiones ? falta * porCamion : falta,
     porCamion,
-    diasRestantes: diasDelMes - hoy.getDate() + 1,   // hoy incluido
-    percent: Math.min(100, (retirado / cupo) * 100),
+    diasRestantes,                                    // hoy incluido
+    // El último cuarto del período, con cupo pendiente: hay que apurarse.
+    apurado: falta > 0 && diasRestantes <= Math.ceil(p.dias / 4),
+    percent: Math.min(100, (usado / cupo) * 100),
   };
 }
 
-/** Los meses anteriores, del más nuevo al más viejo, desde el primer retiro. */
-export function calcHistorialDeCupo(refinery, movements, meses = 6, hoy = new Date()) {
-  const cupo = Number(refinery.monthly_free_tons) || 0;
+/** Los períodos anteriores, del más nuevo al más viejo, desde el primer retiro. */
+export function calcHistorialDeCupo(refinery, movements, hoy = new Date()) {
+  const cupo = Number(refinery.withdrawal_quota) || 0;
   if (!cupo) return [];
+  const tipo = refinery.withdrawal_quota_period || "month";
+  const enCamiones = refinery.withdrawal_quota_unit === "trucks";
   const retiros = retirosDeCupo(movements);
   const primero = retiros.reduce((min, m) => (!min || m.date < min ? m.date : min), null);
   if (!primero) return [];
 
   const filas = [];
-  for (let i = 1; i <= meses; i++) {
-    const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
-    const mes = claveDeMes(d);
-    if (mes < primero.slice(0, 7)) break;
-    const delMes = retiros.filter((m) => (m.date || "").startsWith(mes));
-    const retirado = delMes.reduce((s, m) => s + (m.tons || 0), 0);
-    filas.push({ mes, retirado, camiones: delMes.length, percent: (retirado / cupo) * 100 });
+  const cuantos = tipo === "week" ? 8 : 6;
+  for (let i = 1; i <= cuantos; i++) {
+    const p = periodo(tipo, hoy, i);
+    if (p.fin < primero) break;
+    const uso = usoDelPeriodo(retiros, p, enCamiones);
+    filas.push({ periodo: p.nombre, inicio: p.inicio, ...uso, cumplido: uso.usado >= cupo - 0.01 });
   }
   return filas;
 }

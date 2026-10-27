@@ -410,7 +410,7 @@ export default function RefineryDetail() {
             </Table>
           </div>
 
-          {refinery.monthly_free_tons && (
+          {refinery.withdrawal_quota && (
             <div className="mt-4">
               <CupoRetiro refinery={refinery} movements={movements} conHistorial />
             </div>

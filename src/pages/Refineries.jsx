@@ -40,11 +40,33 @@ const fields = [
     hint: "No aplica para 'Sin Costo'.",
   },
   {
-    name: "monthly_free_tons",
-    label: "Cupo Mensual de Retiro (Tn)",
+    name: "withdrawal_quota",
+    label: "Cupo de Retiro",
     type: "number",
-    placeholder: "Ej: 150",
-    hint: "Opcional. Toneladas que se pueden retirar gratis por mes; el Dashboard muestra cuánto falta.",
+    placeholder: "Ej: 150 tn, o 3 retiros",
+    hint: "Opcional. Cuánto se puede retirar por período; el Dashboard muestra cuánto falta.",
+  },
+  {
+    name: "withdrawal_quota_unit",
+    label: "El cupo se cuenta en",
+    type: "select",
+    showIf: (v) => !!v.withdrawal_quota,
+    required: (v) => !!v.withdrawal_quota,
+    options: [
+      { value: "tons", label: "Toneladas" },
+      { value: "trucks", label: "Retiros (camiones)" },
+    ],
+  },
+  {
+    name: "withdrawal_quota_period",
+    label: "Cada",
+    type: "select",
+    showIf: (v) => !!v.withdrawal_quota,
+    required: (v) => !!v.withdrawal_quota,
+    options: [
+      { value: "month", label: "Mes" },
+      { value: "week", label: "Semana (lunes a domingo)" },
+    ],
   },
   { name: "notes", label: "Notas", type: "textarea" },
 ];
@@ -67,10 +89,13 @@ export default function Refineries() {
 
   const handleSubmit = async (values) => {
     if (editingItem) {
-      // El formulario no manda los campos vacíos, así que borrar el cupo no
-      // llegaría nunca a la base: hay que mandarlo vacío a propósito.
+      // El formulario no manda los campos vacíos ni los ocultos, así que
+      // borrar el cupo no llegaría nunca a la base: hay que mandarlo vacío a
+      // propósito, con su unidad y su período (la base exige los tres juntos).
       await sheetsClient.entities.Refinery.update(editingItem.id, {
-        monthly_free_tons: null,
+        withdrawal_quota: null,
+        withdrawal_quota_unit: null,
+        withdrawal_quota_period: null,
         ...values,
       });
     } else {
