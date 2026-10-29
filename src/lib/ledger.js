@@ -15,6 +15,7 @@ import {
   calcNetTons,
   convertPaymentAmount,
   convertToUsdDivisa,
+  costoDeFason,
   calcRefinedSaleUsdDivisa,
   calcDirectSaleUsdDivisa,
   needsRates,
@@ -276,7 +277,6 @@ function choferYTicket(m, truckPurchases) {
  * Para eso está refineryStockLedger().
  */
 export function refineryLedger(refinery, { movements, payments, suppliers, buyers, truckPurchases }) {
-  const costo = refinery.processing_cost_per_ton || 0;
   const porIngreso = refinery.pricing_type === "ingress_per_ton";
   const porEgreso = refinery.pricing_type === "egress_per_ton";
 
@@ -287,6 +287,7 @@ export function refineryLedger(refinery, { movements, payments, suppliers, buyer
 
     // Un saldo inicial de stock entra como crude_in: si la refinería cobra por
     // tonelada ingresada, también se le cobra. Si cobra por egresada, no.
+    const costo = costoDeFason(refinery, m.date);
     let debit = 0;
     let tn = 0;
     if (porIngreso && esIngreso) {

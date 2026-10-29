@@ -80,28 +80,74 @@ export default function CupoRetiro({ refinery, movements, conNombre = false, con
 
       <p className="text-sm">{estado}</p>
 
-      {historial.length > 0 && (
-        <div className="mt-4 pt-3 border-t border-border">
-          <p className="text-xs font-medium text-muted-foreground mb-2">
-            {c.tipo === "week" ? "Semanas anteriores" : "Meses anteriores"}
-          </p>
-          <div className="space-y-1">
-            {historial.map((h) => (
-              <div key={h.inicio} className="flex justify-between gap-3 text-sm">
-                <span className="text-muted-foreground first-letter:uppercase">{h.periodo}</span>
-                <span className="whitespace-nowrap">
-                  <span className="text-muted-foreground">
-                    {c.enCamiones ? formatTons(h.toneladas) : camiones(h.camiones)} ·{" "}
-                  </span>
-                  <span className={h.cumplido ? "text-haber font-medium" : "font-medium"}>
-                    {c.enCamiones ? retiros(h.camiones) : formatTons(h.toneladas)}
-                  </span>
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {historial.length > 0 && <Historial historial={historial} c={c} />}
     </Card>
   );
 }
+
+/**
+ * Los períodos anteriores, en una tira de barras del más viejo al más nuevo.
+ *
+ * Antes era una lista de una fila por período: con 8 semanas ocupaba más que
+ * el cupo mismo. Las barras van siempre en una línea, de alto fijo; el
+ * detalle de cada una queda en el título (al pasar el mouse).
+ */
+function Historial({ historial, c }) {
+  const semanal = c.tipo === "week";
+  const cumplidos = historial.filter((h) => h.cumplido).length;
+  const barras = [...historial].reverse();
+  const lugares = Math.max(historial.length, semanal ? 8 : 6);
+
+  return (
+    <div className="mt-4 pt-3 border-t border-border">
+      <div className="flex items-baseline justify-between gap-3 mb-2">
+        <p className="text-xs font-medium text-muted-foreground">
+          {semanal ? `Últimas ${plural(historial.length, "semana", "semanas")}` : `Últimos ${plural(historial.length, "mes", "meses")}`}
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Cumplido en{" "}
+          <span className={cumplidos === historial.length ? "text-haber font-medium" : "font-medium text-foreground"}>
+            {cumplidos} de {historial.length}
+          </span>
+        </p>
+      </div>
+
+      {/* Lugares fijos (8 semanas o 6 meses), con lo más nuevo a la derecha:
+          una refinería con pocos períodos no estira las barras. */}
+      <div className="grid items-end gap-1.5" style={{ gridTemplateColumns: `repeat(${lugares}, minmax(0, 1fr))` }}>
+        {barras.map((h, i) => {
+          const alto = Math.min(100, (h.usado / c.cupo) * 100);
+          const valor = c.enCamiones ? h.camiones : Math.round(h.toneladas);
+          const detalle = `${h.periodo}: ${formatTons(h.toneladas)} · ${retiros(h.camiones)}`;
+          return (
+            <div
+              key={h.inicio}
+              title={detalle}
+              className="min-w-0 flex flex-col items-center"
+              style={i === 0 ? { gridColumnStart: lugares - barras.length + 1 } : undefined}
+            >
+              <span className={`text-xs tabular-nums ${h.cumplido ? "text-haber font-medium" : "text-foreground"}`}>
+                {valor}
+              </span>
+              <div className="w-full h-8 bg-muted rounded-sm flex items-end overflow-hidden mt-0.5">
+                <div
+                  className={`w-full ${h.cumplido ? "bg-haber" : "bg-primary/60"}`}
+                  style={{ height: `${Math.max(alto, h.usado > 0 ? 6 : 0)}%` }}
+                />
+              </div>
+              <span className="text-[10px] leading-tight text-muted-foreground mt-1 whitespace-nowrap">
+                {semanal ? diaMesDe(h.inicio) : MES_CORTO[Number(h.inicio.slice(5, 7)) - 1]}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+      <p className="text-[11px] text-muted-foreground/70 mt-1.5">
+        {c.enCamiones ? "Retiros" : "Toneladas"} {semanal ? "de cada semana (empieza el lunes)" : "de cada mes"}.
+      </p>
+    </div>
+  );
+}
+
+const MES_CORTO = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+const diaMesDe = (iso) => `${Number(iso.slice(8, 10))}/${Number(iso.slice(5, 7))}`;

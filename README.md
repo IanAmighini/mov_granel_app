@@ -50,6 +50,7 @@ nuevo:
 | `cotizaciones.sql` | las cotizaciones se piden sólo si hay algo que convertir |
 | `cupo_retiro.sql` | cupo mensual de retiro gratis por refinería |
 | `cupo_semanal.sql` | el cupo pasa a ser por mes o por semana, en toneladas o en retiros |
+| `precio_fason.sql` | cambios de precio del fasón con fecha desde, sin recalcular lo viejo |
 | `nuevo_usuario.sql` | alta de usuarios (bcrypt dentro de Postgres) |
 
 Y las herramientas:

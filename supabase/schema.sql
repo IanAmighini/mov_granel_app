@@ -60,6 +60,8 @@ create table refineries (
   location                text,
   pricing_type            pricing_type not null default 'none',
   processing_cost_per_ton numeric(14,4),
+  -- cambios de precio con fecha desde; ver precio_fason.sql
+  cost_changes            jsonb not null default '[]'::jsonb,
   notes                   text,
   created_at              timestamptz not null default now()
 );

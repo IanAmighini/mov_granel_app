@@ -41,6 +41,7 @@ const CAMPOS = {
   oil_type: "Aceite", movement_type: "Movimiento", status: "Estado",
   role: "Rol", email: "Email", is_active: "Activo",
   account_currency: "Moneda de cuenta", processing_cost_per_ton: "Costo de fasón",
+  cost_changes: "Cambios de precio del fasón",
   delivered_count: "Entregas hechas", total_deliveries: "Entregas totales",
 };
 const campo = (k) => CAMPOS[k] || k;
@@ -48,6 +49,12 @@ const campo = (k) => CAMPOS[k] || k;
 const fmt = (v) => {
   if (v === null || v === undefined || v === "") return "—";
   if (typeof v === "boolean") return v ? "sí" : "no";
+  // cost_changes: [{from, cost}] -> "140 desde 2026-10-29"
+  if (Array.isArray(v)) {
+    if (v.length === 0) return "—";
+    return v.map((x) => (x?.from ? `${x.cost} desde ${x.from}` : JSON.stringify(x))).join(", ");
+  }
+  if (typeof v === "object") return JSON.stringify(v);
   return String(v);
 };
 

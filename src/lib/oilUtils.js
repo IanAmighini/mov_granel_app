@@ -49,8 +49,13 @@ export function formatDate(dateStr) {
   return d.toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
+// La fecha local, no la de UTC: con toISOString, después de las 21 en
+// Argentina ya era mañana.
+const iso = (d) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
 export function todayStr() {
-  return new Date().toISOString().split("T")[0];
+  return iso(new Date());
 }
 
 export function calcNetTons(purchase) {
@@ -190,17 +195,37 @@ export function convertBetweenCurrencies(amount, fromCurrency, toCurrency, rate)
   return amount;
 }
 
+/**
+ * Lo que cobra el fasón de una refinería por tonelada, en una fecha.
+ *
+ * `processing_cost_per_ton` es el precio desde el principio, y
+ * `cost_changes` los cambios: [{ from: "2026-10-29", cost: 140 }]. Cada
+ * movimiento se cobra al precio vigente el día que ocurrió, así un cambio de
+ * precio no recalcula lo que ya pasó.
+ */
+export function costoDeFason(refinery, fecha) {
+  let costo = Number(refinery.processing_cost_per_ton) || 0;
+  let desde = "";
+  for (const c of refinery.cost_changes || []) {
+    if (c.from <= fecha && c.from >= desde) {
+      costo = Number(c.cost) || 0;
+      desde = c.from;
+    }
+  }
+  return costo;
+}
+
 export function calcRefineryBalance(refinery, movements, payments, purchases, allMovements = [], allAgreements = []) {
   let totalCharges = 0;
 
   if (refinery.pricing_type === "ingress_per_ton") {
     totalCharges = movements
       .filter((m) => m.movement_type === "crude_in")
-      .reduce((sum, m) => sum + (m.gross_tons || m.tons || 0) * (refinery.processing_cost_per_ton || 0), 0);
+      .reduce((sum, m) => sum + (m.gross_tons || m.tons || 0) * costoDeFason(refinery, m.date), 0);
   } else if (refinery.pricing_type === "egress_per_ton") {
     totalCharges = movements
       .filter((m) => m.movement_type === "refined_out" && !m.is_initial_balance)
-      .reduce((sum, m) => sum + (m.tons || 0) * (refinery.processing_cost_per_ton || 0), 0);
+      .reduce((sum, m) => sum + (m.tons || 0) * costoDeFason(refinery, m.date), 0);
   } else if (refinery.pricing_type === "buyer") {
     const refPurchases = (purchases || []).filter((p) => p.refinery_id === refinery.id);
     totalCharges = refPurchases.reduce((sum, p) => sum + calcTruckPurchaseSaleUsdDivisa(p), 0);
@@ -288,8 +313,6 @@ export function calcRefineryStock(movements) {
 const MESES = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio",
   "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
-const iso = (d) =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 const diaMes = (d) => `${d.getDate()}/${d.getMonth() + 1}`;
 
 export const quotaPeriodLabels = { month: "por mes", week: "por semana" };

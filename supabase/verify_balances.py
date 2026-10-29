@@ -33,6 +33,12 @@ def conv(amount, cur, div, blue, acct_expr):
 # Neto SIN redondear: calcNetTons() del JS tampoco redondea.
 NETO = "(p.tons * (1 - p.discount_percent/100.0))"
 
+# El precio del fasón vigente el día del movimiento (ver precio_fason.sql).
+COSTO = """coalesce((
+          select (c->>'cost')::numeric from jsonb_array_elements(r.cost_changes) c
+          where (c->>'from')::date <= m.date
+          order by (c->>'from')::date desc limit 1), r.processing_cost_per_ton)"""
+
 SQL = f"""
 -- ============================================================================
 -- Verificación de saldos: Supabase contra el baseline de la planilla.
@@ -79,11 +85,11 @@ refi as (
   select r.id, r.name,
     case r.pricing_type
       when 'ingress_per_ton' then coalesce((
-        select sum(coalesce(m.gross_tons, m.tons) * r.processing_cost_per_ton)
+        select sum(coalesce(m.gross_tons, m.tons) * {COSTO})
         from refinery_movements m
         where m.refinery_id = r.id and m.movement_type = 'crude_in'), 0)
       when 'egress_per_ton' then coalesce((
-        select sum(m.tons * r.processing_cost_per_ton)
+        select sum(m.tons * {COSTO})
         from refinery_movements m
         where m.refinery_id = r.id and m.movement_type = 'refined_out'
           and not m.is_initial_balance), 0)

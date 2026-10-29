@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import ResourceFormDialog from "@/components/ResourceFormDialog";
 import AccountLedger from "@/components/AccountLedger";
 import CupoRetiro from "@/components/CupoRetiro";
+import PrecioFason from "@/components/PrecioFason";
 import { useOilData } from "@/hooks/useOilData";
 import {
   calcRefineryBalance,
@@ -450,6 +451,11 @@ export default function RefineryDetail() {
               <Button variant="outline" onClick={() => setCtaAdjustDialog(true)}>
                 <Plus className="w-4 h-4 mr-2" /> Ajuste de Cuenta
               </Button>
+            </div>
+          )}
+          {(refinery.pricing_type === "ingress_per_ton" || refinery.pricing_type === "egress_per_ton") && (
+            <div className="mt-4">
+              <PrecioFason refinery={refinery} isAdmin={isAdmin} onChange={refetch} />
             </div>
           )}
         </div>

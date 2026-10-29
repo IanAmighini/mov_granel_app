@@ -37,7 +37,7 @@ const fields = [
     name: "processing_cost_per_ton",
     label: "Costo por Tonelada (USD Divisa)",
     type: "currency",
-    hint: "No aplica para 'Sin Costo'.",
+    hint: "El precio desde el principio: cambiarlo recalcula toda la cuenta. Para un precio nuevo desde una fecha, usá «Cambiar precio» en la ficha de la refinería. No aplica para 'Sin Costo'.",
   },
   {
     name: "withdrawal_quota",
